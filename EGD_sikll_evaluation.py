@@ -34,11 +34,6 @@ std_g = 0
 
 name_endo = input("\n본인의 성명을 한글로 입력해 주세요 : ")
 
-# 한글만 입력받도록 검증 추가
-while not all('\uAC00' <= char <= '\uD7A3' for char in name_endo):
-    print("한글만 입력해 주세요.")
-    name_endo = input("\n본인의 성명을 한글로 입력해 주세요 : ")
-
 blue_lower = np.array([102, 80, 80], np.uint8)
 blue_upper = np.array([108, 255, 255], np.uint8)
 
