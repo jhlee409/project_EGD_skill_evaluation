@@ -280,19 +280,19 @@ for ii in img_list:
     plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
     q = q + 1
 
-plt.savefig('test.png')
+plt.savefig('test_result.png')
 
-image4 = cv2.imread('test.png')
+image4 = cv2.imread('test_result.png')
 str_total = str(name_endo) + " " + str(length) + "   " + str(len(fast2)) + "   " + str(mean_b) + "   " + str4 + "   " + str3 + "   " + str(len(img_list))
 pt = (20, 840)
 image5 = cv2.putText(image4, str_total, pt, cv2.FONT_HERSHEY_DUPLEX, 0.5, [0, 0, 0], 1)
 image6 = cv2.cvtColor(image5, cv2.COLOR_BGR2RGB)
-plt.imsave('test.png', image6)
+plt.imsave('test_result.png', image6)
 plt.show()
 
-try:
-    files = os.listdir(dirname)
-    for file in files:
-        os.remove(os.path.join(dirname, file))
-except PermissionError as e:
-    print(f"파일 삭제 중 오류 발생: {e}")
+# try:
+#     files = os.listdir(dirname)
+#     for file in files:
+#         os.remove(os.path.join(dirname, file))
+# except PermissionError as e:
+#     print(f"파일 삭제 중 오류 발생: {e}")
