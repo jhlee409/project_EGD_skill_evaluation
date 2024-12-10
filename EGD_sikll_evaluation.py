@@ -32,7 +32,7 @@ std_b = 0
 mean_g = 0
 std_g = 0
 
-name_endo = input("\n본인의 성명을 한글로 입력해 주세요 : ")
+name_endo = input("\n본인의 성명을 영어로 입력해 주세요 : ")
 
 blue_lower = np.array([102, 80, 80], np.uint8)
 blue_upper = np.array([108, 255, 255], np.uint8)
