@@ -293,8 +293,9 @@ plt.savefig('test_result.png')
 
 image4 = cv2.imread('test_result.png')
 str_total = str(name_endo) + " " + str(length) + "   " + str(len(fast2)) + "   " + str(mean_b) + "   " + str4 + "   " + str3 + "   " + str(len(img_list))
-pt = (20, 840)
-image5 = cv2.putText(image4, str_total, pt, cv2.FONT_HERSHEY_DUPLEX, 0.5, [0, 0, 0], 1)
+height, width, _ = image4.shape
+pt = (20, height - 20)
+image5 = cv2.putText(image4, str_total, pt, cv2.FONT_HERSHEY_DUPLEX, 1, [0, 0, 0], 2, cv2.LINE_AA)
 image6 = cv2.cvtColor(image5, cv2.COLOR_BGR2RGB)
 plt.imsave('test_result.png', image6)
 plt.show()
