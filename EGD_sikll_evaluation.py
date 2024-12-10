@@ -121,9 +121,17 @@ for (path, dir, files) in os.walk(dirname):
                 if radius > 8:
                     cv2.circle(frame, center, 30, (0, 0, 255), -1)
 
+                # 프레임을 새로운 윈도우에 표시
+                cv2.imshow('Video Analysis', frame)  # 새로운 윈도우에 프레임 표시
+
+                # 'q' 키를 눌러서 종료할 수 있도록 설정
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
                 ret, frame = camera.read()
 
             camera.release()
+            cv2.destroyAllWindows()  # 모든 윈도우 닫기
 
             k = list(pts)
             array_k = np.array(k)
