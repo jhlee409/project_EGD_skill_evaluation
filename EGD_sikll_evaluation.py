@@ -285,8 +285,16 @@ for ii in img_list:
     plt.figure(1)
     plt.subplot(rows, columns, q, aspect='equal')
     plt.axis('off')
-    plt.imshow(img)
+    
+    # 이미지 크기를 두 배로 조정
+    img_resized = cv2.resize(img, (img.shape[1] * 2, img.shape[0] * 2))
+    plt.imshow(img_resized)
     plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+    
+    # 이미지 이름을 이미지 내부 밑부분에 추가
+    image_name = os.path.basename(ii)
+    plt.text(0.5, 0.05, image_name, fontsize=8, ha='center', va='center', transform=plt.gca().transAxes)
+    
     q = q + 1
 
 plt.savefig('test_result.png')
