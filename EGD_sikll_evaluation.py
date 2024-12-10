@@ -32,7 +32,7 @@ std_b = 0
 mean_g = 0
 std_g = 0
 
-name_endo = input("\n본인의 성명을 영어로 입력해 주세요 : ")
+name_endo = input("\n본인의 성명을 한글로 입력해 주세요 : ")
 
 blue_lower = np.array([102, 80, 80], np.uint8)
 blue_upper = np.array([108, 255, 255], np.uint8)
@@ -58,7 +58,7 @@ for (path, dir, files) in os.walk(dirname):
             frame_rate = camera.get(cv2.CAP_PROP_FPS)  # 프레임 속도 가져오기
             duration = length / frame_rate  # 동영상 길이(초)
 
-            print('\n동영상 길이(초):', duration)
+            print('\n동영상 길이(초):', int(duration))
             print('\n동영상 frame 수(권장 frame 값 ; 7200 - 7920) :', length)
 
             # 동영상 길이 체크 조건 수정
@@ -190,6 +190,7 @@ for (path, dir, files) in os.walk(dirname):
             std_b = np.std(distance_bb)
             if mean_b == 0:
                 print('\n불합격입니다. 십이지장 2nd portion을 관찰하지 않았습니다. 다시 시도해 주세요')
+            mean_b = round(mean_b, 4)
 
             distance_gg = [ggg for ggg in distance_g if ggg < 6]
             mean_g = np.mean(distance_gg)
@@ -224,7 +225,7 @@ for (path, dir, files) in os.walk(dirname):
     clf.fit(x_train)
 
     y_pred_test = clf.predict(x_test)
-    str4 = str(clf.decision_function(x_test))
+    str4 = str(round(clf.decision_function(x_test)[0], 4))
 
     if y_pred_test == 1:
         print('\n EGD 수행이 적절하게 진행되어 1단계 합격입니다.\n')
