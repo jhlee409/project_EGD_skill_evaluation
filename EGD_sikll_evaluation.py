@@ -11,7 +11,7 @@ from sklearn import svm
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
 import matplotlib.image as mpimg
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from shutil import copyfile
 from sklearn.impute import SimpleImputer
 
@@ -300,12 +300,21 @@ for ii in img_list:
 plt.savefig('test_result.png')
 
 image4 = cv2.imread('test_result.png')
+image4 = cv2.cvtColor(image4, cv2.COLOR_BGR2RGB)
+
 str_total = str(name_endo) + " " + str(length) + "   " + str(len(fast2)) + "   " + str(mean_b) + "   " + str4 + "   " + str3 + "   " + str(len(img_list))
 height, width, _ = image4.shape
 pt = (20, height - 20)
-image5 = cv2.putText(image4, str_total, pt, cv2.FONT_HERSHEY_DUPLEX, 1, [0, 0, 0], 2, cv2.LINE_AA)
-image6 = cv2.cvtColor(image5, cv2.COLOR_BGR2RGB)
-plt.imsave('test_result.png', image6)
+
+# PIL을 사용하여 한글 텍스트 추가
+image_pil = Image.fromarray(image4)
+draw = ImageDraw.Draw(image_pil)
+font = ImageFont.truetype("C:/Windows/Fonts/malgun.ttf", 20)  # 적절한 한글 글꼴 경로로 수정
+draw.text(pt, str_total, font=font, fill=(0, 0, 0))
+
+# 다시 OpenCV 형식으로 변환
+image4 = cv2.cvtColor(np.array(image_pil), cv2.COLOR_RGB2BGR)
+plt.imsave('test_result.png', image4)
 plt.show()
 
 # try:
