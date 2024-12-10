@@ -293,7 +293,7 @@ for ii in img_list:
     
     # 이미지 이름을 이미지 내부 밑부분에 추가
     image_name = os.path.basename(ii)
-    plt.text(0.5, 0.05, image_name, fontsize=8, ha='center', va='center', transform=plt.gca().transAxes)
+    plt.text(0.5, 0.05, image_name, fontsize=16, ha='center', va='center', transform=plt.gca().transAxes, fontweight='bold')
     
     q = q + 1
 
