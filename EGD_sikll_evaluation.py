@@ -75,17 +75,16 @@ for (path, dir, files) in os.walk(dirname):
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                 hsv_values.append(hsv)
 
-                # blue 색상 관련 코드 삭제
-                # blue = cv2.inRange(hsv, blue_lower, blue_upper)
-                # contours2, _ = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                # if contours2:
-                #     b = max(contours2, key=cv2.contourArea)
-                #     ba = cv2.contourArea(b)
-                # else:
-                #     b = []
-                #     ba = 0
-
+                blue = cv2.inRange(hsv, blue_lower, blue_upper)
                 green = cv2.inRange(hsv, green_lower, green_upper)
+
+                contours2, _ = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                if contours2:
+                    b = max(contours2, key=cv2.contourArea)
+                    ba = cv2.contourArea(b)
+                else:
+                    b = []
+                    ba = 0
 
                 contours3, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                 if contours3:
@@ -249,7 +248,7 @@ for (path, dir, files) in os.walk(dirname):
         print(':test 폴더에 있는 test.png를 expert photo.pptx와 비교해 보고 만족스러우면 파일을 제출해 주세요')
         str3 = 'pass.'
     else:
-        print('\nEGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다. 다시 시도해 주세요 \n')
+        print('\nEGD 수행이 적절하게 진행되지 못했습니다. 1단계 불���격입니다. 다시 시도해 주세요 \n')
         str3 = 'failure.'
 
 w = 12
