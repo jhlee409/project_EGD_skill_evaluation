@@ -204,7 +204,7 @@ for (path, dir, files) in os.walk(dirname):
             mean_b = np.mean(distance_bb)
             std_b = np.std(distance_bb)
             if mean_b == 0:
-                print('\n불합격입니다. 십이���장 2nd portion을 관찰하지 않았습니다. 다시 시도해 주세요')
+                print('\n불합격입니다. 십이지장 2nd portion을 관찰하지 않았습니다. 다시 시도해 주세요')
             mean_b = round(mean_b, 4)
 
             distance_gg = [ggg for ggg in distance_g if ggg < 6]
