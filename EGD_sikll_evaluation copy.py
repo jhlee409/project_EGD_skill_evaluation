@@ -71,53 +71,62 @@ for (path, dir, files) in os.walk(dirname):
 
             hsv_values = []
 
-            # 초기 중심점과 윤곽선 저장
-            initial_center = None
-            initial_contour = None
-
             while ret:
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                hsv_values.append(hsv)
+
+                blue = cv2.inRange(hsv, blue_lower, blue_upper)
                 green = cv2.inRange(hsv, green_lower, green_upper)
+
+                contours2, _ = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                if contours2:
+                    b = max(contours2, key=cv2.contourArea)
+                    ba = cv2.contourArea(b)
+                else:
+                    b = []
+                    ba = 0
 
                 contours3, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                 if contours3:
                     g = max(contours3, key=cv2.contourArea)
                     ga = cv2.contourArea(g)
+                else:
+                    g = []
+                    ga = 0
 
-                    # 초기 윤곽선과 중심점 설정
-                    if initial_contour is None:
-                        initial_contour = g
-                        M = cv2.moments(g)
-                        if M["m00"] != 0:
-                            initial_center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-                        else:
-                            initial_center = (0, 0)
+                pts.append(ii)
+                ii += 1
 
-                    # 윤곽선 유사성 비교
-                    similarity = cv2.matchShapes(initial_contour, g, cv2.CONTOURS_MATCH_I1, 0.0)
-                    if similarity < 0.1:  # 유사성이 높으면 같은 물체로 간주
-                        M = cv2.moments(g)
-                        if M["m00"] != 0:
-                            px = abs(int(M["m10"] / M["m00"]))
-                            py = abs(int(M["m01"] / M["m00"]))
-                        else:
-                            px, py = 0, 0
+                if max(ba, ga) == ba and ba > 30:
+                    u = np.array(b)
+                    pts.append(1)
+                elif max(ba, ga) == ga and ga > 30:
+                    u = np.array(g)
+                    pts.append(2)
+                else:
+                    u = np.array([[[0, 0]], [[1, 0]], [[2, 0]], [[2, 1]], [[2, 2]], [[1, 2]], [[0, 2]], [[0, 1]]])
+                    pts.append(3)
 
-                        # 초기 중심점과의 거리 계산
-                        distance = math.sqrt((px - initial_center[0])**2 + (py - initial_center[1])**2)
-                        print(f"중심점 이동 거리: {distance}")
+                M = cv2.moments(u)
+                if M["m00"] != 0:
+                    px = abs(int(M["m10"] / M["m00"]))
+                    py = abs(int(M["m01"] / M["m00"]))
+                else:
+                    px, py = 0, 0
 
-                        # 중심점과 반지름 저장
-                        pts.append(px)
-                        pts.append(py)
-                        ((cx, cy), radius) = cv2.minEnclosingCircle(g)
-                        pts.append(radius)
+                pts.append(px)
+                pts.append(py)
 
-                        if radius > 8:
-                            cv2.circle(frame, (px, py), 30, (0, 0, 255), -1)
+                ((cx, cy), radius) = cv2.minEnclosingCircle(u)
+                center = (int(cx), int(cy))
+                radius = int(radius)
+                pts.append(radius)
+
+                if radius > 8:
+                    cv2.circle(frame, center, 30, (0, 0, 255), -1)
 
                 # 프레임을 새로운 윈도우에 표시
-                cv2.imshow('Video Analysis', frame)
+                cv2.imshow('Video Analysis', frame)  # 새로운 윈도우에 프레임 표시
 
                 # 'q' 키를 눌러서 종료할 수 있도록 설정
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -126,7 +135,7 @@ for (path, dir, files) in os.walk(dirname):
                 ret, frame = camera.read()
 
             camera.release()
-            cv2.destroyAllWindows()
+            cv2.destroyAllWindows()  # 모든 윈도우 닫기
 
             k = list(pts)
             array_k = np.array(k)
@@ -186,7 +195,7 @@ for (path, dir, files) in os.walk(dirname):
             angle_ggg = [abs(iiiii) for iiiii in angle_g if iiiii != 0]
             mean_ggg = np.mean(angle_ggg)
             std_ggg = np.std(angle_ggg)
-            print('\njerky movement 횟수(숫자가 클 수록 흔들��� 사진이 찍힐 능성이 높습니다. 권장 20 이하)) :  ', len(fast2))
+            print('\njerky movement 횟수(숫자가 클 수록 흔들린 사진이 찍힐 능성이 높습니다. 권장 20 이하)) :  ', len(fast2))
             distance = [iii for iii in distance_g if iii != 0]
             steps = len(distance)
             xx = np.arange(0.0, steps, 1)
