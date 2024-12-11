@@ -248,7 +248,7 @@ for (path, dir, files) in os.walk(dirname):
         print(':test 폴더에 있는 test.png를 expert photo.pptx와 비교해 보고 만족스러우면 파일을 제출해 주세요')
         str3 = 'pass.'
     else:
-        print('\nEGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다. 다시 시도해 주세요 \n')
+        print('\nEGD 수행이 적절하게 진행되지 못했습니다. 1단계 불���격입니다. 다시 시도해 주세요 \n')
         str3 = 'failure.'
 
 w = 12
@@ -337,6 +337,8 @@ hsv_values = np.array(hsv_values)
 # hsv_values의 차원 확인
 if len(hsv_values.shape) == 2:  # 2차원 배열인 경우
     hsv_values = hsv_values[:, :, np.newaxis]  # 3차원으로 변환
+elif len(hsv_values.shape) == 1:  # 1차원 배열인 경우
+    hsv_values = hsv_values[np.newaxis, :, np.newaxis]  # 3차원으로 변환
 
 # [0,0,0] 제외
 hsv_values = hsv_values[(hsv_values[:, :, 0] != 0) | (hsv_values[:, :, 1] != 0) | (hsv_values[:, :, 2] != 0)]
