@@ -69,8 +69,11 @@ for (path, dir, files) in os.walk(dirname):
             else:
                 ret, frame = camera.read()
 
+            hsv_values = []
+
             while ret:
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                hsv_values.append(hsv)
 
                 blue = cv2.inRange(hsv, blue_lower, blue_upper)
                 green = cv2.inRange(hsv, green_lower, green_upper)
@@ -201,7 +204,7 @@ for (path, dir, files) in os.walk(dirname):
             mean_b = np.mean(distance_bb)
             std_b = np.std(distance_bb)
             if mean_b == 0:
-                print('\n불합격입니다. 십이지장 2nd portion을 관찰하지 않았습니다. 다시 시도해 주세요')
+                print('\n불합격입니다. 십이���장 2nd portion을 관찰하지 않았습니다. 다시 시도해 주세요')
             mean_b = round(mean_b, 4)
 
             distance_gg = [ggg for ggg in distance_g if ggg < 6]
@@ -328,6 +331,10 @@ plt.show()
 # except PermissionError as e:
 #     print(f"파일 삭제 중 오류 발생: {e}")
 
-# 감지된 색상 표시
-cv2.imshow('Blue Detection', blue)
-cv2.imshow('Green Detection', green)
+# 동영상 처리 후 HSV 값의 최소값과 최대값 계산
+hsv_values = np.array(hsv_values)
+min_hsv = np.min(hsv_values, axis=(0, 1))  # 각 채널의 최소값
+max_hsv = np.max(hsv_values, axis=(0, 1))  # 각 채널의 최대값
+
+print("Green 색의 HSV 최소값:", min_hsv)
+print("Green 색의 HSV 최대값:", max_hsv)
