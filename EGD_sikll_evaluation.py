@@ -34,12 +34,12 @@ std_g = 0
 
 name_endo = input("\n본인의 성명을 한글로 입력해 주세요 : ")
 
-blue_lower = np.array([102, 80, 80], np.uint8)
-blue_upper = np.array([108, 255, 255], np.uint8)
+blue_lower = np.array([90, 50, 50], np.uint8)
+blue_upper = np.array([130, 255, 255], np.uint8)
 
 # 이 green 색의 값은 HSV 색 공간에서의 값입니다.
-green_lower = np.array([40, 20, 20], np.uint8)
-green_upper = np.array([80, 255, 255], np.uint8)
+green_lower = np.array([35, 50, 50], np.uint8)
+green_upper = np.array([85, 255, 255], np.uint8)
 
 dirname = r'test'
 for (path, dir, files) in os.walk(dirname):
@@ -330,23 +330,3 @@ plt.show()
 #         os.remove(os.path.join(dirname, file))
 # except PermissionError as e:
 #     print(f"파일 삭제 중 오류 발생: {e}")
-
-# 동영상 처리 후 HSV 값의 최소값과 최대값 계산
-hsv_values = np.array(hsv_values)
-
-# hsv_values의 차원 확인
-if len(hsv_values.shape) == 2:  # 2차원 배열인 경우
-    hsv_values = hsv_values[:, :, np.newaxis]  # 3차원으로 변환
-elif len(hsv_values.shape) == 1:  # 1차원 배열인 경우
-    hsv_values = hsv_values[np.newaxis, :, np.newaxis]  # 3차원으로 변환
-
-# [0,0,0] 제외
-hsv_values = hsv_values[(hsv_values[:, :, 0] != 0) | (hsv_values[:, :, 1] != 0) | (hsv_values[:, :, 2] != 0)]
-
-min_hsv = np.min(hsv_values, axis=(0, 1))  # 각 채널의 최소값
-max_hsv = np.max(hsv_values, axis=(0, 1))  # 각 채널의 최대값
-mode_hsv = [np.argmax(np.bincount(hsv_values[:, :, i].flatten())) for i in range(3)]  # 최빈값 계산
-
-print("Green 색의 최소값:", min_hsv)
-print("Green 색의 최대값:", max_hsv)
-print("Green 색의 최빈값:", mode_hsv)
