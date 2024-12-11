@@ -34,12 +34,12 @@ std_g = 0
 
 name_endo = input("\n본인의 성명을 한글로 입력해 주세요 : ")
 
-blue_lower = np.array([90, 50, 50], np.uint8)
-blue_upper = np.array([130, 255, 255], np.uint8)
+blue_lower = np.array([35, 80, 50], np.uint8)
+blue_upper = np.array([120, 255, 255], np.uint8)
 
 # 이 green 색의 값은 HSV 색 공간에서의 값입니다.
-green_lower = np.array([35, 50, 50], np.uint8)
-green_upper = np.array([85, 255, 255], np.uint8)
+green_lower = np.array([35, 80, 50], np.uint8)
+green_upper = np.array([120, 255, 255], np.uint8)
 
 dirname = r'test'
 for (path, dir, files) in os.walk(dirname):
@@ -97,10 +97,10 @@ for (path, dir, files) in os.walk(dirname):
                 pts.append(ii)
                 ii += 1
 
-                if max(ba, ga) == ba and ba > 30:
+                if max(ba, ga) == ba and ba > 500:
                     u = np.array(b)
                     pts.append(1)
-                elif max(ba, ga) == ga and ga > 30:
+                elif max(ba, ga) == ga and ga > 500:
                     u = np.array(g)
                     pts.append(2)
                 else:
