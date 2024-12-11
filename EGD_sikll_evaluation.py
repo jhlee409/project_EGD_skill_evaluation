@@ -37,8 +37,9 @@ name_endo = input("\n본인의 성명을 한글로 입력해 주세요 : ")
 blue_lower = np.array([102, 80, 80], np.uint8)
 blue_upper = np.array([108, 255, 255], np.uint8)
 
-green_lower = np.array([77, 80, 80], np.uint8)
-green_upper = np.array([81, 255, 255], np.uint8)
+# 이 green 색의 값은 HSV 색 공간에서의 값입니다.
+green_lower = np.array([50, 80, 80], np.uint8)
+green_upper = np.array([70, 120, 120], np.uint8)
 
 dirname = r'test'
 for (path, dir, files) in os.walk(dirname):
