@@ -139,6 +139,7 @@ for (path, dir, files) in os.walk(dirname):
             color2 = np.reshape(color, (timesteps, 1))
 
             x_value = array_k[2::5]
+            timesteps = len(x_value)
             x_value2 = np.reshape(x_value, (timesteps, 1))
 
             y_value = array_k[3::5]
@@ -146,6 +147,16 @@ for (path, dir, files) in os.walk(dirname):
 
             radius2 = array_k[4::5]
             radius3 = np.reshape(radius2, (timesteps, 1))
+
+            # 가장 작은 배열의 크기로 timesteps 설정
+            min_timesteps = min(len(frame_no2), len(color2), len(x_value2), len(y_value2), len(radius3))
+
+            # 배열 크기 조정
+            frame_no2 = frame_no2[:min_timesteps]
+            color2 = color2[:min_timesteps]
+            x_value2 = x_value2[:min_timesteps]
+            y_value2 = y_value2[:min_timesteps]
+            radius3 = radius3[:min_timesteps]
 
             points = np.hstack([frame_no2, color2, x_value2, y_value2, radius3])
 
@@ -186,7 +197,7 @@ for (path, dir, files) in os.walk(dirname):
             angle_ggg = [abs(iiiii) for iiiii in angle_g if iiiii != 0]
             mean_ggg = np.mean(angle_ggg)
             std_ggg = np.std(angle_ggg)
-            print('\njerky movement 횟수(숫자가 클 수록 흔들��� 사진이 찍힐 능성이 높습니다. 권장 20 이하)) :  ', len(fast2))
+            print('\njerky movement 횟수(숫자가 클 수록 흔들 사진이 찍힐 능성이 높습니다. 권장 20 이하)) :  ', len(fast2))
             distance = [iii for iii in distance_g if iii != 0]
             steps = len(distance)
             xx = np.arange(0.0, steps, 1)
