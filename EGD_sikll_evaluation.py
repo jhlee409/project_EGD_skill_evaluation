@@ -38,8 +38,8 @@ blue_lower = np.array([102, 80, 80], np.uint8)
 blue_upper = np.array([108, 255, 255], np.uint8)
 
 # 이 green 색의 값은 HSV 색 공간에서의 값입니다.
-green_lower = np.array([50, 80, 80], np.uint8)
-green_upper = np.array([70, 120, 120], np.uint8)
+green_lower = np.array([40, 20, 20], np.uint8)
+green_upper = np.array([80, 120, 120], np.uint8)
 
 dirname = r'test'
 for (path, dir, files) in os.walk(dirname):
