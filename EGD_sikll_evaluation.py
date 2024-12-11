@@ -85,7 +85,7 @@ for (path, dir, files) in os.walk(dirname):
                 pts.append(ii)
                 ii += 1
 
-                if ga > 30:
+                if ga > 1500:
                     u = np.array(g)
                     pts.append(2)
                 else:
@@ -155,14 +155,6 @@ for (path, dir, files) in os.walk(dirname):
                     y_value4 = np.append(y_value4, 0)
 
             for i in range(timesteps - 1):
-                if (points[i][1] != 3 and points[i + 1][1] != 3) and (points[i][1] == 1 and points[i + 1][1] == 1):
-                    a = points[i + 1][2] - points[i][2]
-                    b = points[i + 1][3] - points[i][3]
-                    rr = points[i][4]
-                    delta_b = (math.sqrt((a * a) + (b * b))) / rr
-                    distance_b = np.append(distance_b, delta_b)
-                else:
-                    distance_b = np.append(distance_b, 0)
 
                 if (points[i][1] != 3 and points[i + 1][1] != 3) and (points[i][1] == 2 and points[i + 1][1] == 2):
                     a = points[i + 1][2] - points[i][2]
@@ -170,8 +162,6 @@ for (path, dir, files) in os.walk(dirname):
                     angle_g = np.append(angle_g, degrees(atan2(a, b)))
                     rr = points[i][4]
                     delta_g = (math.sqrt((a * a) + (b * b))) / rr
-                    if delta_g > 6:
-                        fast2 = np.append(fast2, points[i][0])
                     distance_g = np.append(distance_g, delta_g)
                 else:
                     distance_g = np.append(distance_g, 0)
@@ -180,17 +170,9 @@ for (path, dir, files) in os.walk(dirname):
             angle_ggg = [abs(iiiii) for iiiii in angle_g if iiiii != 0]
             mean_ggg = np.mean(angle_ggg)
             std_ggg = np.std(angle_ggg)
-            print('\njerky movement 횟수(숫자가 클 수록 흔들린 사진이 찍힐 능성이 높습니다. 권장 20 이하)) :  ', len(fast2))
             distance = [iii for iii in distance_g if iii != 0]
             steps = len(distance)
             xx = np.arange(0.0, steps, 1)
-
-            distance_bb = [bbb for bbb in distance_b if bbb < 6]
-            mean_b = np.mean(distance_bb)
-            std_b = np.std(distance_bb)
-            if mean_b == 0:
-                print('\n불합격입니다. 십이지장 2nd portion을 관찰하지 않았습니다. 다시 시도해 주세요')
-            mean_b = round(mean_b, 4)
 
             distance_gg = [ggg for ggg in distance_g if ggg < 6]
             mean_g = np.mean(distance_gg)
@@ -294,7 +276,7 @@ plt.savefig('test_result.png')
 image4 = cv2.imread('test_result.png')
 image4 = cv2.cvtColor(image4, cv2.COLOR_BGR2RGB)
 
-str_total = str(name_endo) + " " + str(length) + "   " + str(len(fast2)) + "   " + str(mean_b) + "   " + str4 + "   " + str3 + "   " + str(len(img_list))
+str_total = str(name_endo) + " " + str(length) + "  " + str4 + "   " + str3 + "   " + str(len(img_list))
 height, width, _ = image4.shape
 pt = (20, height - 20)
 
