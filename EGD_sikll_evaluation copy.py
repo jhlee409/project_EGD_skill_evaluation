@@ -71,11 +71,6 @@ for (path, dir, files) in os.walk(dirname):
 
             hsv_values = []
 
-            # 추적 상태를 저장할 변수들 추가
-            currently_tracking = False
-            tracking_color = None  # 1: blue, 2: green
-            last_valid_contour = None
-
             while ret:
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                 hsv_values.append(hsv)
@@ -83,46 +78,31 @@ for (path, dir, files) in os.walk(dirname):
                 blue = cv2.inRange(hsv, blue_lower, blue_upper)
                 green = cv2.inRange(hsv, green_lower, green_upper)
 
-                if not currently_tracking:
-                    # 추적 중이 아닐 때만 새로운 객체 검출
-                    contours2, _ = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    contours3, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    
-                    ba = max([cv2.contourArea(c) for c in contours2]) if contours2 else 0
-                    ga = max([cv2.contourArea(c) for c in contours3]) if contours3 else 0
-
-                    if max(ba, ga) > 30:  # 최소 크기 조건
-                        if ba > ga:
-                            tracking_color = 1  # blue
-                            last_valid_contour = max(contours2, key=cv2.contourArea)
-                        else:
-                            tracking_color = 2  # green
-                            last_valid_contour = max(contours3, key=cv2.contourArea)
-                        currently_tracking = True
+                contours2, _ = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                if contours2:
+                    b = max(contours2, key=cv2.contourArea)
+                    ba = cv2.contourArea(b)
                 else:
-                    # 현재 추적 중인 색상의 컨투어만 검사
-                    if tracking_color == 1:
-                        contours, _ = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    else:
-                        contours, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                    b = []
+                    ba = 0
 
-                    if contours:
-                        current_contour = max(contours, key=cv2.contourArea)
-                        if cv2.contourArea(current_contour) > 30:
-                            last_valid_contour = current_contour
-                        else:
-                            currently_tracking = False  # 객체가 사라짐
-                            tracking_color = None
-                    else:
-                        currently_tracking = False
-                        tracking_color = None
+                contours3, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                if contours3:
+                    g = max(contours3, key=cv2.contourArea)
+                    ga = cv2.contourArea(g)
+                else:
+                    g = []
+                    ga = 0
 
                 pts.append(ii)
                 ii += 1
 
-                if currently_tracking:
-                    pts.append(tracking_color)
-                    u = np.array(last_valid_contour)
+                if max(ba, ga) == ba and ba > 30:
+                    u = np.array(b)
+                    pts.append(1)
+                elif max(ba, ga) == ga and ga > 30:
+                    u = np.array(g)
+                    pts.append(2)
                 else:
                     u = np.array([[[0, 0]], [[1, 0]], [[2, 0]], [[2, 1]], [[2, 2]], [[1, 2]], [[0, 2]], [[0, 1]]])
                     pts.append(3)
