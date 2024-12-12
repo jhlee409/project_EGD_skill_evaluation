@@ -48,7 +48,7 @@ if st.button("분석 시작"):
         for blob in blobs:
             # 파일 경로를 디렉토리와 파일 이름으로 설정
             file_name = os.path.basename(blob.name)  # blob의 이름을 가져옵니다.
-            file_path = os.path.join('temp', 'EGD_skill_evaluation', 'test', file_name)  # 전체 파일 경로를 만듭니다.
+            file_path = os.path.join('EGD_skill_evaluation', 'test', file_name)  # 전체 파일 경로를 만듭니다.
             
             os.makedirs(os.path.dirname(file_path), exist_ok=True)  # 디렉토리가 없으면 생성합니다.
             blob.download_to_filename(file_path)  # 파일을 다운로드합니다.
