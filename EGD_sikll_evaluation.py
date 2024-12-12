@@ -47,7 +47,7 @@ for (path, dir, files) in os.walk(dirname):
         ext = os.path.splitext(filename)[-1]
         image_path = os.path.join(path, filename)
 
-        if ext == '.mp4':
+        if ext == '.avi':
             camera = cv2.VideoCapture(image_path)
             
             # 동영상 파일이 제대로 열렸는지 확인
@@ -60,11 +60,11 @@ for (path, dir, files) in os.walk(dirname):
             duration = length / frame_rate  # 동영상 길이(초)
 
             print('\n동영상 길이(초):', int(duration))
-            print('\n동영상 frame 수(권장 frame 값 ; 7200 - 7920) :', length)
+            print('\n동영상 frame 수(권장 frame 값 ; 4000 - 6000) :', length)
 
             # 동영상 길이 체크 조건 수정
-            if length < 7200 or length > 7920:
-                print("\n불합격: 권장 검사 시간 범위(7200 - 7920 프레임)를 벗어났습니다. 다시 하십시오\n")
+            if length < 4000 or length > 6000:
+                print("\n불합격: 권장 검사 시간 범위(4000 - 6000) 프레임)를 벗어났습니다. 다시 하십시오\n")
                 break
             else:
                 ret, frame = camera.read()
