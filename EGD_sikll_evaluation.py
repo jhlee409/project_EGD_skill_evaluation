@@ -37,17 +37,15 @@ bucket = storage.bucket('amcgi-bulletin.appspot.com')
 st.title("EGD Skill Evaluation")
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
-# 폴일 업로더
+# 파일 업로더
 uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
                                     accept_multiple_files=True,
                                     type=['avi', 'bmp'])
 
-# 분석 시작 버튼
-if st.button("분석 시작"):
+# 파일이 업로드되면 자동으로 분석 시작
+if uploaded_files:
     if not name_endo:
         st.error("이름을 입력해 주세요.")
-    elif not uploaded_files:
-        st.error("분석할 파일을 선택해 주세요.")
     else:
         st.write(f"분석을 시작합니다, {name_endo}님.")
 
@@ -224,7 +222,7 @@ if st.button("분석 시작"):
             if y_pred_test == 1:
                 st.success('EGD 수행이 적절하게 진행되어 1단계 합격입니다.')
             else:
-                st.error('EGD 수행이 적절하게 진행되지 못했습���다. 1단계 불합격입니다.')
+                st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
 
         # BMP 파일 처리 (한 번만 실행)
         if has_bmp:
