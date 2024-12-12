@@ -90,9 +90,9 @@ if uploaded_files:
                 st.error("불합격: 권장 검사 시간 범위를 벗어났습니다.")
                 break
 
-            # 진행률 표시 바 생성
-            progress_bar = st.progress(0)
-            progress_text = st.empty()
+            # # 진행률 표시 바 생성
+            # progress_bar = st.progress(0)
+            # progress_text = st.empty()
             
             ret, frame = camera.read()
             pts = deque()
@@ -105,7 +105,7 @@ if uploaded_files:
                 # 진행률 계산 및 표시
                 frame_count += 1
                 progress = int((frame_count / length) * 100)
-                # progress_bar.progress(progress)
+                progress_bar.progress(progress)
                 progress_text.text(f"동영상 분석 진행률: {progress}%")
 
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
