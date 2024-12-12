@@ -80,16 +80,24 @@ if st.button("분석 시작"):
                     st.error("불합격: 권장 검사 시간 범위를 벗어났습니다.")
                     break
 
-                # 프레임을 표시할 Streamlit 이미지 컨테이너 생성
-                frame_container = st.empty()
+                # 진행률 표시 바 생성
+                progress_bar = st.progress(0)
+                progress_text = st.empty()
                 
                 ret, frame = camera.read()
                 pts = deque()
                 ii = 1
                 angle_g = []
                 distance_g = []
+                frame_count = 0
 
                 while ret:
+                    # 진행률 계산 및 표시
+                    frame_count += 1
+                    progress = int((frame_count / length) * 100)
+                    progress_bar.progress(progress)
+                    progress_text.text(f"분석 진행률: {progress}%")
+
                     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                     green_lower = np.array([35, 80, 50], np.uint8)
                     green_upper = np.array([100, 255, 255], np.uint8)
@@ -131,12 +139,11 @@ if st.button("분석 시작"):
                     if radius > 8:
                         cv2.circle(frame, center, 30, (0, 0, 255), -1)
 
-                    # 프레임을 Streamlit 컨테이너에 표시
-                    frame_container.image(frame, channels="BGR", use_container_width=True)
-
                     ret, frame = camera.read()
 
                 camera.release()
+                progress_bar.progress(100)
+                progress_text.text("분석 완료!")
 
                 k = list(pts)
                 array_k = np.array(k)
