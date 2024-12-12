@@ -105,7 +105,7 @@ if uploaded_files:
                 # 진행률 계산 및 표시
                 frame_count += 1
                 progress = int((frame_count / length) * 100)
-                progress_bar.progress(progress)
+                # progress_bar.progress(progress)
                 progress_text.text(f"동영상 분석 진행률: {progress}%")
 
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
