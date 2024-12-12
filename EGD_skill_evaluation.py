@@ -227,6 +227,8 @@ if uploaded_files:
                 y_pred_test = clf.predict(x_test)
                 str4 = str(round(clf.decision_function(x_test)[0], 4))
 
+                st.write(str4)
+
                 if y_pred_test == 1:
                     st.success('EGD 수행이 적절하게 진행되어 1단계 합격입니다.')
                 else:
