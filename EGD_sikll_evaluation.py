@@ -14,8 +14,6 @@ from math import atan2, degrees
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
-from tkinter import filedialog
-import tkinter as tk
 
  # Check if Firebase app has already been initialized
 if not firebase_admin._apps:
@@ -42,47 +40,44 @@ bucket = storage.bucket('amcgi-bulletin.appspot.com')
 st.title("EGD Skill Evaluation")
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
-# 폴더 선택 버튼
-if st.button("분석할 폴더 선택"):
-    # tkinter 창 숨기기
-    root = tk.Tk()
-    root.withdraw()
-    
-    # 폴더 선택 다이얼로그 표시
-    folder_path = filedialog.askdirectory()
-    
-    if folder_path:
-        st.session_state['folder_path'] = folder_path
-        st.write(f"선택된 폴더: {folder_path}")
+# 폴더 선택 (디렉토리 업로더)
+uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
+                                accept_multiple_files=True,
+                                type=['avi', 'bmp'])
 
 # 분석 시작 버튼
 if st.button("분석 시작"):
     if not name_endo:
         st.error("이름을 입력해 주세요.")
-    elif 'folder_path' not in st.session_state:
-        st.error("분석할 폴더를 선택해 주세요.")
+    elif not uploaded_files:
+        st.error("분석할 파일을 선택해 주세요.")
     else:
         st.write(f"분석을 시작합니다, {name_endo}님.")
-        folder_path = st.session_state['folder_path']
 
         # 진행률 표시 바 생성
         progress_bar = st.progress(0)
         progress_text = st.empty()
 
-        # 선택된 폴더에서 파일 처리
+        # 임시 디렉토리 생성
+        temp_dir = "temp_files"
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # 파일 분류
         has_bmp = False
         avi_files = []
         bmp_files = []
 
-        # 폴더 내 파일 목록 가져오기
-        for file_name in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, file_name)
+        # 업로드된 파일 저장 및 분류
+        for uploaded_file in uploaded_files:
+            temp_path = os.path.join(temp_dir, uploaded_file.name)
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
             
-            if file_name.endswith('.avi'):
-                avi_files.append(file_path)
-            elif file_name.endswith('.bmp'):
+            if uploaded_file.name.endswith('.avi'):
+                avi_files.append(temp_path)
+            elif uploaded_file.name.endswith('.bmp'):
                 has_bmp = True
-                bmp_files.append(file_path)
+                bmp_files.append(temp_path)
 
         # AVI 파일 처리
         for file_path in avi_files:
@@ -270,13 +265,13 @@ if st.button("분석 시작"):
             # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
             
-            # 결과 이미지 저장
-            result_path = os.path.join(folder_path, f'{name_endo}_{current_date}.png')
-            result_image.save(result_path)
+            # 결과 이미지 임시 저장
+            temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
+            result_image.save(temp_result_path)
 
             # Firebase Storage에 업로드
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
-            result_blob.upload_from_filename(result_path)
+            result_blob.upload_from_filename(temp_result_path)
 
             progress_text.text("이미지 분석 완료!")
             st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
