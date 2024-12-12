@@ -261,8 +261,9 @@ for ii in img_list:
     plt.subplot(rows, columns, q, aspect='equal')
     plt.axis('off')
     
-    # RGB 이미지로 변환 (matplotlib는 기본적으로 RGB로 읽음)
-    plt.imshow(img)
+    # RGB 이미지로 명시적 변환
+    img_rgb = img[:, :, :3]  # RGB 채널만 선택
+    plt.imshow(img_rgb)  # RGB 이미지 표시
     plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
     
     # 이미지 이름 추가
@@ -271,7 +272,7 @@ for ii in img_list:
     
     q = q + 1
 
-plt.savefig('test_result.png')
+plt.savefig('test_result.png', dpi=300, bbox_inches='tight')
 
 # OpenCV로 읽을 때 BGR에서 RGB로 변환
 image4 = cv2.imread('test_result.png')
