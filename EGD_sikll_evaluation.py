@@ -33,7 +33,7 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 
-bucket = storage.bucket()
+bucket = storage.bucket('amcgi-bulletin.appspot.com') 
 
 # Streamlit UI
 st.title("EGD Skill Evaluation")
