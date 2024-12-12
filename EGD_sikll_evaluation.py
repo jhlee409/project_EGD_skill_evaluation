@@ -48,7 +48,6 @@ if uploaded_files:
         st.error("이름을 입력해 주세요.")
     else:
         st.write("파일 분석 중...")  # 파일 분석 중 메시지
-        progress_bar = st.progress(0)  # 진행률 표시 바 생성
         progress_text = st.empty()  # 진행률 텍스트 초기화
 
         # 임시 디렉토리 생성
@@ -105,8 +104,6 @@ if uploaded_files:
                 # 진행률 계산 및 표시
                 frame_count += 1
                 progress = int((frame_count / length) * 100)
-                overall_progress = (processed_files / total_files) * 100 + (1 / total_files) * progress
-                progress_bar.progress(overall_progress)
                 progress_text.text(f"동영상 분석 진행률: {progress}%")
 
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -153,7 +150,7 @@ if uploaded_files:
                 ret, frame = camera.read()
 
             camera.release()
-            progress_bar.progress(100)
+   
             progress_text.text("동영상 분석 완료!")
 
             k = list(pts)
@@ -252,7 +249,6 @@ if uploaded_files:
                     y += single_width + padding
 
                 progress = int(((idx + 1) / len(bmp_files)) * 100)
-                progress_bar.progress(progress)
                 progress_text.text(f"이미지 분석 진행률: {progress}%")
 
             # 현재 날짜 가져오기
