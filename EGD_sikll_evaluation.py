@@ -9,7 +9,6 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.impute import SimpleImputer
 from sklearn import svm
 from math import atan2, degrees
-import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 from datetime import datetime
 import firebase_admin
@@ -38,7 +37,7 @@ bucket = storage.bucket('amcgi-bulletin.appspot.com')
 st.title("EGD Skill Evaluation")
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
-# 폴더 선택 (디렉토리 업로더)
+# 폴일 업로더
 uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
                                     accept_multiple_files=True,
                                     type=['avi', 'bmp'])
@@ -159,7 +158,7 @@ if st.button("분석 시작"):
 
             camera.release()
             progress_bar.progress(100)
-            progress_text.text("분석 완료!")
+            progress_text.text("동영상 분석 완료!")
 
             k = list(pts)
             array_k = np.array(k)
@@ -225,7 +224,7 @@ if st.button("분석 시작"):
             if y_pred_test == 1:
                 st.success('EGD 수행이 적절하게 진행되어 1단계 합격입니다.')
             else:
-                st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
+                st.error('EGD 수행이 적절하게 진행되지 못했습���다. 1단계 불합격입니다.')
 
         # BMP 파일 처리 (한 번만 실행)
         if has_bmp:
@@ -264,7 +263,7 @@ if st.button("분석 시작"):
             current_date = datetime.now().strftime("%Y%m%d")
             
             # 결과 이미지 임시 저장
-            temp_result_path = os.path.join(folder_path, f'{name_endo}_{current_date}.png')
+            temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
             result_image.save(temp_result_path)
 
             # Firebase Storage에 업로드
@@ -273,5 +272,10 @@ if st.button("분석 시작"):
 
             progress_text.text("이미지 분석 완료!")
             st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
+
+        # 임시 파일 정리
+        for file_path in avi_files + bmp_files:
+            os.remove(file_path)
+        os.rmdir(temp_dir)
 
         st.success("분석이 완료되었습니다.")
