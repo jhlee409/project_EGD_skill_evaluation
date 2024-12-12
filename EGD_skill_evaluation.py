@@ -273,6 +273,3 @@ if uploaded_files:
         os.rmdir(temp_dir)
 
         st.success("분석이 완료되었습니다.")
-            
-else:
-    st.warning('Please log in to read more.')
