@@ -243,7 +243,7 @@ if st.button("분석 시작"):
             # A4 크기 설정 (300 DPI 기준)
             a4_width = 2480
             a4_height = 3508
-            images_per_row = 7
+            images_per_row = 8
             padding = 20
 
             # A4 크기의 빈 이미지 생성
