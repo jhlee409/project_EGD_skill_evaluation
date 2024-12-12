@@ -261,20 +261,19 @@ for ii in img_list:
     plt.subplot(rows, columns, q, aspect='equal')
     plt.axis('off')
     
-    # RGB 이미지로 명시적 변환
-    img_rgb = img[:, :, :3]  # RGB 채널만 선택
-    plt.imshow(img_rgb)  # RGB 이미지 표시
+    # 이미지 크기를 두 배로 조정
+    img_resized = cv2.resize(img, (img.shape[1] * 2, img.shape[0] * 2))
+    plt.imshow(img_resized)
     plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
     
-    # 이미지 이름 추가
+    # 이미지 이미지 내부 밑부분에 추가
     image_name = os.path.basename(ii)
     plt.text(0.5, 0.05, image_name, fontsize=8, ha='center', va='center', transform=plt.gca().transAxes)
     
     q = q + 1
 
-plt.savefig('test_result.png', dpi=300, bbox_inches='tight')
+plt.savefig('test_result.png')
 
-# OpenCV로 읽을 때 BGR에서 RGB로 변환
 image4 = cv2.imread('test_result.png')
 image4 = cv2.cvtColor(image4, cv2.COLOR_BGR2RGB)
 
