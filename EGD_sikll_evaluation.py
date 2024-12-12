@@ -85,7 +85,7 @@ for (path, dir, files) in os.walk(dirname):
                 pts.append(ii)
                 ii += 1
 
-                if max(ga) == ga and ga > 500:
+                if ga > 500:
                     u = np.array(g)
                     pts.append(2)
                 else:
