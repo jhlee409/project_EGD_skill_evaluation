@@ -39,8 +39,8 @@ bucket_name = 'amcgi-bulletin.appspot.com'
 bucket = storage.bucket(bucket_name)  # 항상 사용할 수 있도록 초기화
 
 st.header("EGD_skill_evaluation")
-st.divider()
 st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수행의 적절성을 평가하는 페이지 입니다.")
+st.divider()
 
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
