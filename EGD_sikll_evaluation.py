@@ -34,12 +34,9 @@ std_g = 0
 
 name_endo = input("\n본인의 성명을 한글로 입력해 주세요 : ")
 
-blue_lower = np.array([90, 50, 50], np.uint8)
-blue_upper = np.array([120, 255, 255], np.uint8)
-
 # 이 green 색의 값은 HSV 색 공간에서의 값입니다.
 green_lower = np.array([35, 80, 50], np.uint8)
-green_upper = np.array([120, 255, 255], np.uint8)
+green_upper = np.array([100, 255, 255], np.uint8)
 
 dirname = r'test'
 for (path, dir, files) in os.walk(dirname):
@@ -75,16 +72,7 @@ for (path, dir, files) in os.walk(dirname):
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                 hsv_values.append(hsv)
 
-                blue = cv2.inRange(hsv, blue_lower, blue_upper)
                 green = cv2.inRange(hsv, green_lower, green_upper)
-
-                contours2, _ = cv2.findContours(blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                if contours2:
-                    b = max(contours2, key=cv2.contourArea)
-                    ba = cv2.contourArea(b)
-                else:
-                    b = []
-                    ba = 0
 
                 contours3, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                 if contours3:
@@ -97,10 +85,7 @@ for (path, dir, files) in os.walk(dirname):
                 pts.append(ii)
                 ii += 1
 
-                if max(ba, ga) == ba and ba > 500:
-                    u = np.array(b)
-                    pts.append(1)
-                elif max(ba, ga) == ga and ga > 500:
+                if max(ga) == ga and ga > 500:
                     u = np.array(g)
                     pts.append(2)
                 else:
@@ -170,15 +155,6 @@ for (path, dir, files) in os.walk(dirname):
                     y_value4 = np.append(y_value4, 0)
 
             for i in range(timesteps - 1):
-                if (points[i][1] != 3 and points[i + 1][1] != 3) and (points[i][1] == 1 and points[i + 1][1] == 1):
-                    a = points[i + 1][2] - points[i][2]
-                    b = points[i + 1][3] - points[i][3]
-                    rr = points[i][4]
-                    delta_b = (math.sqrt((a * a) + (b * b))) / rr
-                    distance_b = np.append(distance_b, delta_b)
-                else:
-                    distance_b = np.append(distance_b, 0)
-
                 if (points[i][1] != 3 and points[i + 1][1] != 3) and (points[i][1] == 2 and points[i + 1][1] == 2):
                     a = points[i + 1][2] - points[i][2]
                     b = points[i + 1][3] - points[i][3]
@@ -195,17 +171,9 @@ for (path, dir, files) in os.walk(dirname):
             angle_ggg = [abs(iiiii) for iiiii in angle_g if iiiii != 0]
             mean_ggg = np.mean(angle_ggg)
             std_ggg = np.std(angle_ggg)
-            print('\njerky movement 횟수(숫자가 클 수록 흔들린 사진이 찍힐 능성이 높습니다. 권장 20 이하)) :  ', len(fast2))
             distance = [iii for iii in distance_g if iii != 0]
             steps = len(distance)
             xx = np.arange(0.0, steps, 1)
-
-            distance_bb = [bbb for bbb in distance_b if bbb < 6]
-            mean_b = np.mean(distance_bb)
-            std_b = np.std(distance_bb)
-            if mean_b == 0:
-                print('\n불합격입니다. 십이지장 2nd portion을 관찰하지 않았습니다. 다시 시도해 주세요')
-            mean_b = round(mean_b, 4)
 
             distance_gg = [ggg for ggg in distance_g if ggg < 6]
             mean_g = np.mean(distance_gg)
@@ -293,12 +261,11 @@ for ii in img_list:
     plt.subplot(rows, columns, q, aspect='equal')
     plt.axis('off')
     
-    # 이미지 크기를 두 배로 조정
-    img_resized = cv2.resize(img, (img.shape[1] * 2, img.shape[0] * 2))
-    plt.imshow(img_resized)
+    # RGB 이미지로 변환 (matplotlib는 기본적으로 RGB로 읽음)
+    plt.imshow(img)
     plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
     
-    # 이미지 이미지 내부 밑부분에 추가
+    # 이미지 이름 추가
     image_name = os.path.basename(ii)
     plt.text(0.5, 0.05, image_name, fontsize=8, ha='center', va='center', transform=plt.gca().transAxes)
     
@@ -306,12 +273,13 @@ for ii in img_list:
 
 plt.savefig('test_result.png')
 
+# OpenCV로 읽을 때 BGR에서 RGB로 변환
 image4 = cv2.imread('test_result.png')
 image4 = cv2.cvtColor(image4, cv2.COLOR_BGR2RGB)
 
 str_total = str(name_endo) + " " + str(length) + "   " + str(len(fast2)) + "   " + str(mean_b) + "   " + str4 + "   " + str3 + "   " + str(len(img_list))
 height, width, _ = image4.shape
-pt = (20, height - 20)
+pt = (20, height - 40)
 
 # PIL을 사용하여 한글 텍스트 추가
 image_pil = Image.fromarray(image4)
