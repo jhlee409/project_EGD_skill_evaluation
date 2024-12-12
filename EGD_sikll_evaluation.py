@@ -1,6 +1,4 @@
 import streamlit as st
-import firebase_admin
-from firebase_admin import credentials, storage
 import os
 import cv2
 import numpy as np
@@ -12,12 +10,13 @@ from sklearn.impute import SimpleImputer
 from sklearn import svm
 from math import atan2, degrees
 import matplotlib.pyplot as plt
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 from datetime import datetime
+import firebase_admin
+from firebase_admin import credentials, storage
 
- # Check if Firebase app has already been initialized
+# Firebase 초기화
 if not firebase_admin._apps:
-    # Streamlit Secrets에서 Firebase 설정 정보 로드
     cred = credentials.Certificate({
         "type": "service_account",
         "project_id": st.secrets["project_id"],
@@ -33,24 +32,21 @@ if not firebase_admin._apps:
     })
     firebase_admin.initialize_app(cred)
 
-
-bucket = storage.bucket('amcgi-bulletin.appspot.com') 
+bucket = storage.bucket('amcgi-bulletin.appspot.com')
 
 # Streamlit UI
 st.title("EGD Skill Evaluation")
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
 # 폴더 선택 (디렉토리 업로더)
-uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
-                                accept_multiple_files=True,
-                                type=['avi', 'bmp'])
+folder_path = st.text_input("분석할 폴더 경로를 입력해 주세요:")
 
 # 분석 시작 버튼
 if st.button("분석 시작"):
     if not name_endo:
         st.error("이름을 입력해 주세요.")
-    elif not uploaded_files:
-        st.error("분석할 파일을 선택해 주세요.")
+    elif not folder_path or not os.path.isdir(folder_path):
+        st.error("유효한 폴더 경로를 입력해 주세요.")
     else:
         st.write(f"분석을 시작합니다, {name_endo}님.")
 
@@ -58,26 +54,20 @@ if st.button("분석 시작"):
         progress_bar = st.progress(0)
         progress_text = st.empty()
 
-        # 임시 디렉토리 생성
-        temp_dir = "temp_files"
-        os.makedirs(temp_dir, exist_ok=True)
-
         # 파일 분류
         has_bmp = False
         avi_files = []
         bmp_files = []
 
-        # 업로드된 파일 저장 및 분류
-        for uploaded_file in uploaded_files:
-            temp_path = os.path.join(temp_dir, uploaded_file.name)
-            with open(temp_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+        # 선택된 폴더 내 파일 목록 가져오기
+        for file_name in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, file_name)
             
-            if uploaded_file.name.endswith('.avi'):
-                avi_files.append(temp_path)
-            elif uploaded_file.name.endswith('.bmp'):
+            if file_name.endswith('.avi'):
+                avi_files.append(file_path)
+            elif file_name.endswith('.bmp'):
                 has_bmp = True
-                bmp_files.append(temp_path)
+                bmp_files.append(file_path)
 
         # AVI 파일 처리
         for file_path in avi_files:
@@ -266,7 +256,7 @@ if st.button("분석 시작"):
             current_date = datetime.now().strftime("%Y%m%d")
             
             # 결과 이미지 임시 저장
-            temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
+            temp_result_path = os.path.join(folder_path, f'{name_endo}_{current_date}.png')
             result_image.save(temp_result_path)
 
             # Firebase Storage에 업로드
