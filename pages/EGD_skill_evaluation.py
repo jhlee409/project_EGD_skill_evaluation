@@ -19,9 +19,9 @@ st.set_page_config(page_title="EGD_skill_evaluation", layout="wide")
 
 if st.session_state.get('logged_in', False):  # 로그인 상태 확인
 
-    st.header("AMC 내과 R3 소화기 proper용 교육 과정 설명")
+    st.header("EGD_skill_evaluation")
     st.divider()
-    st.markdown("이 페이지는 AMC **내과 전공의 3년차 소화기 proper**를 대상으로하는 진단 EGD 교육 과정의 설명입니다.")
+    st.markdown("이 페이지는 EGD simulator 훈련 후 적절성을 평가하는 프로그램입니다.")
 
     # 로그 아웃 버튼
     if "logged_in" in st.session_state and st.session_state['logged_in']:

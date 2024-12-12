@@ -34,7 +34,7 @@ st.title("EGD_skill_evaluation")
 st.header("Login page")
 st.markdown(
     '''
-    1. 이 게시판은 서울 아산병원 GI 상부 EGD_skill_evaluation을 위한 웹페이지입니다.
+    1. 이 게시판은 EGD simulator 훈련 후 적절성을 평가하는 프로그램입니다.
     1. 로그인 한 후 왼쪽 메뉴에서 EGD_skill_evaluation을 선택한 후 이용해 주세요.
     1. 최종결과는 자동적으로 제출됩니다.
     '''
