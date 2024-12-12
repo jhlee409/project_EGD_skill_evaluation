@@ -91,8 +91,8 @@ if uploaded_files:
                 break
 
             # # 진행률 표시 바 생성
-            # progress_bar = st.progress(0)
-            # progress_text = st.empty()
+            progress_bar = st.progress(0)
+            progress_text = st.empty()
             
             ret, frame = camera.read()
             pts = deque()
