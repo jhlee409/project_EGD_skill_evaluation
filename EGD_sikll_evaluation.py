@@ -39,14 +39,16 @@ st.title("EGD Skill Evaluation")
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
 # 폴더 선택 (디렉토리 업로더)
-folder_path = st.text_input("분석할 폴더 경로를 입력해 주세요:")
+uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
+                                    accept_multiple_files=True,
+                                    type=['avi', 'bmp'])
 
 # 분석 시작 버튼
 if st.button("분석 시작"):
     if not name_endo:
         st.error("이름을 입력해 주세요.")
-    elif not folder_path or not os.path.isdir(folder_path):
-        st.error("유효한 폴더 경로를 입력해 주세요.")
+    elif not uploaded_files:
+        st.error("분석할 파일을 선택해 주세요.")
     else:
         st.write(f"분석을 시작합니다, {name_endo}님.")
 
@@ -54,20 +56,26 @@ if st.button("분석 시작"):
         progress_bar = st.progress(0)
         progress_text = st.empty()
 
+        # 임시 디렉토리 생성
+        temp_dir = "temp_files"
+        os.makedirs(temp_dir, exist_ok=True)
+
         # 파일 분류
         has_bmp = False
         avi_files = []
         bmp_files = []
 
-        # 선택된 폴더 내 파일 목록 가져오기
-        for file_name in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, file_name)
+        # 업로드된 파일 저장 및 분류
+        for uploaded_file in uploaded_files:
+            temp_path = os.path.join(temp_dir, uploaded_file.name)
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
             
-            if file_name.endswith('.avi'):
-                avi_files.append(file_path)
-            elif file_name.endswith('.bmp'):
+            if uploaded_file.name.endswith('.avi'):
+                avi_files.append(temp_path)
+            elif uploaded_file.name.endswith('.bmp'):
                 has_bmp = True
-                bmp_files.append(file_path)
+                bmp_files.append(temp_path)
 
         # AVI 파일 처리
         for file_path in avi_files:
