@@ -57,7 +57,10 @@ if uploaded_files:
         bmp_files = []
 
         # 업로드된 파일 저장 및 분류
-        for uploaded_file in uploaded_files:
+        progress_bar = st.progress(0)
+        total_files = len(uploaded_files)
+        
+        for idx, uploaded_file in enumerate(uploaded_files):
             temp_path = os.path.join(temp_dir, uploaded_file.name)
             with open(temp_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
@@ -67,6 +70,9 @@ if uploaded_files:
             elif uploaded_file.name.endswith('.bmp'):
                 has_bmp = True
                 bmp_files.append(temp_path)
+            
+            progress = int(((idx + 1) / total_files) * 100)
+            progress_bar.progress(progress)
 
         # AVI 파일 처리
         for file_path in avi_files:
