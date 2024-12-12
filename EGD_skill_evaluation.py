@@ -16,18 +16,27 @@ from firebase_admin import credentials, storage
 
 st.set_page_config(page_title="EGD_skill_evaluation", layout="wide")
 
-st.header("EGD_skill_evaluation")
-st.divider()
-st.markdown("이 페이지는 EGD simulator 훈련 후 적절성을 평가하는 프로그램입니다.")
+# Firebase 초기화
+if not firebase_admin._apps:
+    # Streamlit Secrets에서 Firebase 설정 정보 로드
+    cred = credentials.Certificate({
+        "type": "service_account",
+        "project_id": st.secrets["project_id"],
+        "private_key_id": st.secrets["private_key_id"],
+        "private_key": st.secrets["private_key"].replace('\\n', '\n'),
+        "client_email": st.secrets["client_email"],
+        "client_id": st.secrets["client_id"],
+        "auth_uri": st.secrets["auth_uri"],
+        "token_uri": st.secrets["token_uri"],
+        "auth_provider_x509_cert_url": st.secrets["auth_provider_x509_cert_url"],
+        "client_x509_cert_url": st.secrets["client_x509_cert_url"],
+        "universe_domain": st.secrets["universe_domain"]
+    })
+    firebase_admin.initialize_app(cred, {"storageBucket": "amcgi-bulletin.appspot.com"})
 
-# 로그 아웃 버튼
-if "logged_in" in st.session_state and st.session_state['logged_in']:
-
-    if st.sidebar.button("Logout"):
-        st.session_state['logged_in'] = False
-        st.success("로그아웃 되었습니다.")
-        # 필요시 추가적인 세션 상태 초기화 코드
-        # 예: del st.session_state['logged_in'
+# Firebase Storage 버킷 참조
+bucket_name = 'amcgi-bulletin.appspot.com'
+bucket = storage.bucket(bucket_name)  # 항상 사용할 수 있도록 초기화
 
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
@@ -264,3 +273,6 @@ if uploaded_files:
         os.rmdir(temp_dir)
 
         st.success("분석이 완료되었습니다.")
+            
+else:
+    st.warning('Please log in to read more.')
