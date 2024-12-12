@@ -166,8 +166,6 @@ if st.button("분석 시작"):
                         angle_g = np.append(angle_g, degrees(atan2(a, b)))
                         rr = points[i][4]
                         delta_g = (np.sqrt((a * a) + (b * b))) / rr
-                        if delta_g > 6:
-                            st.write(f"빠른 움직임 감지: 프레임 {points[i][0]}")
                         distance_g = np.append(distance_g, delta_g)
                     else:
                         distance_g = np.append(distance_g, 0)
@@ -207,7 +205,6 @@ if st.button("분석 시작"):
                     st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
 
             elif file_path.endswith('.bmp'):
-                st.write(f"이미지 파일 분석: {file_path}")
                 img = cv2.imread(file_path)
                 # 이미지 처리 코드 추가 가능
 
