@@ -13,6 +13,7 @@ from sklearn import svm
 from math import atan2, degrees
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
+from datetime import datetime
 
  # Check if Firebase app has already been initialized
 if not firebase_admin._apps:
@@ -212,8 +213,52 @@ if st.button("분석 시작"):
                     st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
 
             elif file_path.endswith('.bmp'):
-                img = cv2.imread(file_path)
-                # 이미지 처리 코드 추가 가능
+                # A4 크기 설정 (300 DPI 기준)
+                a4_width = 2480  # 픽셀 단위
+                a4_height = 3508
+                images_per_row = 6
+                padding = 20
+
+                # 모든 bmp 파일 수집
+                bmp_files = []
+                for blob in bucket.list_blobs(prefix='EGD_skill_evaluation/test/'):
+                    if blob.name.endswith('.bmp'):
+                        bmp_files.append(file_path)
+
+                # A4 크기의 빈 이미지 생성 (흰색 배경)
+                result_image = Image.new('RGB', (a4_width, a4_height), 'white')
+                draw = ImageDraw.Draw(result_image)
+
+                # 각 이미지의 크기 계산
+                single_width = (a4_width - (padding * (images_per_row + 1))) // images_per_row
+                
+                # bmp 파일들을 A4에 배치
+                x, y = padding, padding
+                for idx, bmp_file in enumerate(bmp_files):
+                    img = Image.open(bmp_file)
+                    # 비율 유지하면서 리사이즈
+                    img.thumbnail((single_width, single_width))
+                    result_image.paste(img, (x, y))
+                    
+                    x += single_width + padding
+                    if (idx + 1) % images_per_row == 0:
+                        x = padding
+                        y += single_width + padding
+
+                # 현재 날짜 가져오기
+                current_date = datetime.now().strftime("%Y%m%d")
+                
+                # 결과 이미지 임시 저장
+                temp_result_path = f'temp_{name_endo}_{current_date}.png'
+                result_image.save(temp_result_path)
+
+                # Firebase Storage에 업로드
+                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
+                result_blob.upload_from_filename(temp_result_path)
+
+                # 임시 파일 삭제
+                os.remove(temp_result_path)
+                st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
 
         st.success("분석이 완료되었습니다.")
     else:
