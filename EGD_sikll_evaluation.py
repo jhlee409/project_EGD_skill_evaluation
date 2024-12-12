@@ -213,21 +213,30 @@ if st.button("분석 시작"):
                     st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
 
             elif file_path.endswith('.bmp'):
+                # 진행률 표시 바 생성
+                progress_bar = st.progress(0)
+                progress_text = st.empty()
+
+                # 모저 모든 bmp 파일 다운로드
+                bmp_files = []
+                total_blobs = list(bucket.list_blobs(prefix='EGD_skill_evaluation/test/'))
+                bmp_blobs = [blob for blob in total_blobs if blob.name.endswith('.bmp')]
+                
+                progress_text.text("BMP 파일 다운로드 중...")
+                for idx, blob in enumerate(bmp_blobs):
+                    local_path = os.path.join('EGD_skill_evaluation', 'test', os.path.basename(blob.name))
+                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    blob.download_to_filename(local_path)
+                    bmp_files.append(local_path)
+                    # 다운로드 진행률 업데이트
+                    progress = int(((idx + 1) / len(bmp_blobs)) * 50)  # 전체 진행률의 50%를 다운로드에 할당
+                    progress_bar.progress(progress)
+
                 # A4 크기 설정 (300 DPI 기준)
                 a4_width = 2480  # 픽셀 단위
                 a4_height = 3508
                 images_per_row = 6
                 padding = 20
-
-                # 진행률 표시 바 생성
-                progress_bar = st.progress(0)
-                progress_text = st.empty()
-
-                # 모든 bmp 파일 수집
-                bmp_files = []
-                for blob in bucket.list_blobs(prefix='EGD_skill_evaluation/test/'):
-                    if blob.name.endswith('.bmp'):
-                        bmp_files.append(file_path)
 
                 # A4 크기의 빈 이미지 생성 (흰색 배경)
                 result_image = Image.new('RGB', (a4_width, a4_height), 'white')
@@ -235,15 +244,11 @@ if st.button("분석 시작"):
 
                 # 각 이미지의 크기 계산
                 single_width = (a4_width - (padding * (images_per_row + 1))) // images_per_row
-                
-                # bmp 파일들을 A4에 배치
+
+                # 이미지 배치
+                progress_text.text("이미지 배치 중...")
                 x, y = padding, padding
                 for idx, bmp_file in enumerate(bmp_files):
-                    # 진행률 업데이트
-                    progress = int(((idx + 1) / len(bmp_files)) * 100)
-                    progress_bar.progress(progress)
-                    progress_text.text(f"이미지 분석 진행률: {progress}%")
-
                     img = Image.open(bmp_file)
                     img.thumbnail((single_width, single_width))
                     result_image.paste(img, (x, y))
@@ -253,9 +258,9 @@ if st.button("분석 시작"):
                         x = padding
                         y += single_width + padding
 
-                # 진행률 100% 표시
-                progress_bar.progress(100)
-                progress_text.text("이미지 분석 완료!")
+                    # 이미지 배치 진행률 업데이트 (50%~100%)
+                    progress = 50 + int(((idx + 1) / len(bmp_files)) * 50)
+                    progress_bar.progress(progress)
 
                 # 현재 날짜 가져오기
                 current_date = datetime.now().strftime("%Y%m%d")
@@ -268,8 +273,12 @@ if st.button("분석 시작"):
                 result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
                 result_blob.upload_from_filename(temp_result_path)
 
-                # 임시 파일 삭제
+                # 임시 파일들 삭제
                 os.remove(temp_result_path)
+                for bmp_file in bmp_files:
+                    os.remove(bmp_file)
+
+                progress_text.text("이미지 분석 완료!")
                 st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
 
         st.success("분석이 완료되었습니다.")
