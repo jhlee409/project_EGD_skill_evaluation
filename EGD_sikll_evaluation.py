@@ -80,6 +80,9 @@ if st.button("분석 시작"):
                     st.error("불합격: 권장 검사 시간 범위를 벗어났습니다.")
                     break
 
+                # 프레임을 표시할 Streamlit 이미지 컨테이너 생성
+                frame_container = st.empty()
+                
                 ret, frame = camera.read()
                 pts = deque()
                 ii = 1
@@ -128,12 +131,8 @@ if st.button("분석 시작"):
                     if radius > 8:
                         cv2.circle(frame, center, 30, (0, 0, 255), -1)
 
-                    # Streamlit에 프레임 표시
-                    st.image(frame, channels="BGR", use_column_width=True)
-
-                    # 'q' 키를 누르면 분석을 중단합니다.
-                    if cv2.waitKey(int(1000 / frame_rate)) & 0xFF == ord('q'):
-                        break
+                    # 프레임을 Streamlit 컨테이너에 표시
+                    frame_container.image(frame, channels="BGR", use_column_width=True)
 
                     ret, frame = camera.read()
 
