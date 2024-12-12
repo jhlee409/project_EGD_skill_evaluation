@@ -97,7 +97,7 @@ if st.button("분석 시작"):
                     frame_count += 1
                     progress = int((frame_count / length) * 100)
                     progress_bar.progress(progress)
-                    progress_text.text(f"분석 진행률: {progress}%")
+                    progress_text.text(f"동영상 분석 진행률: {progress}%")
 
                     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                     green_lower = np.array([35, 80, 50], np.uint8)
@@ -219,6 +219,10 @@ if st.button("분석 시작"):
                 images_per_row = 6
                 padding = 20
 
+                # 진행률 표시 바 생성
+                progress_bar = st.progress(0)
+                progress_text = st.empty()
+
                 # 모든 bmp 파일 수집
                 bmp_files = []
                 for blob in bucket.list_blobs(prefix='EGD_skill_evaluation/test/'):
@@ -235,8 +239,12 @@ if st.button("분석 시작"):
                 # bmp 파일들을 A4에 배치
                 x, y = padding, padding
                 for idx, bmp_file in enumerate(bmp_files):
+                    # 진행률 업데이트
+                    progress = int(((idx + 1) / len(bmp_files)) * 100)
+                    progress_bar.progress(progress)
+                    progress_text.text(f"이미지 분석 진행률: {progress}%")
+
                     img = Image.open(bmp_file)
-                    # 비율 유지하면서 리사이즈
                     img.thumbnail((single_width, single_width))
                     result_image.paste(img, (x, y))
                     
@@ -244,6 +252,10 @@ if st.button("분석 시작"):
                     if (idx + 1) % images_per_row == 0:
                         x = padding
                         y += single_width + padding
+
+                # 진행률 100% 표시
+                progress_bar.progress(100)
+                progress_text.text("이미지 분석 완료!")
 
                 # 현재 날짜 가져오기
                 current_date = datetime.now().strftime("%Y%m%d")
