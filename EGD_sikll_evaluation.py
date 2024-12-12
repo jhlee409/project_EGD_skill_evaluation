@@ -47,10 +47,6 @@ if uploaded_files:
     if not name_endo:
         st.error("이름을 입력해 주세요.")
     else:
-        st.write("파일 분석 중...")  # 파일 분석 중 메시지
-        progress_bar = st.progress(0)  # 진행률 표시 바 생성
-        progress_text = st.empty()  # 진행률 텍스트 초기화
-
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
         os.makedirs(temp_dir, exist_ok=True)
@@ -61,17 +57,16 @@ if uploaded_files:
         bmp_files = []
 
         # 업로드된 파일 저장 및 분류
-        with st.spinner('파일을 저장하고 분류하는 중...'):
-            for uploaded_file in uploaded_files:
-                temp_path = os.path.join(temp_dir, uploaded_file.name)
-                with open(temp_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                
-                if uploaded_file.name.endswith('.avi'):
-                    avi_files.append(temp_path)
-                elif uploaded_file.name.endswith('.bmp'):
-                    has_bmp = True
-                    bmp_files.append(temp_path)
+        for uploaded_file in uploaded_files:
+            temp_path = os.path.join(temp_dir, uploaded_file.name)
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            
+            if uploaded_file.name.endswith('.avi'):
+                avi_files.append(temp_path)
+            elif uploaded_file.name.endswith('.bmp'):
+                has_bmp = True
+                bmp_files.append(temp_path)
 
         total_files = len(avi_files) + len(bmp_files)
         processed_files = 0
