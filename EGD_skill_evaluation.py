@@ -47,7 +47,7 @@ name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 # 파일 업로더
 uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
                                     accept_multiple_files=True,
-                                    type=['avi', 'bmp'])
+                                    type=['avi', 'bmp', 'mp4'])
 
 # 파일의 업로드 및 파악
 if uploaded_files:
@@ -73,7 +73,7 @@ if uploaded_files:
             with open(temp_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             
-            if uploaded_file.name.endswith('.avi'):
+            if uploaded_file.name.endswith('.avi') or uploaded_file.name.endswith('.mp4'):
                 avi_files.append(temp_path)
             elif uploaded_file.name.endswith('.bmp'):
                 has_bmp = True
@@ -83,9 +83,7 @@ if uploaded_files:
             progress = int(((idx + 1) / total_files) * 100)
             progress_text.text(f"파일 업로드 진행률: {progress}%")
 
-        st.write("파일 업로드 및 파악이 완료되었습니다.")
-
-        st.write("지금부터 동영상 파일을 분석하겠습니다.")  # 동영상 분석 시작 메시지
+        st.success("파일 업로드 및 파악이 완료되었습니다. 지금부터는 동영상 파일을 분석하겠습니다.")
 
         # AVI 파일 처리
         total_avi_files = len(avi_files)
@@ -273,7 +271,7 @@ if uploaded_files:
             temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
             result_image.save(temp_result_path)
 
-            # Firebase Storage에 업로드
+            # Firebase Storage에 ���로드
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             result_blob.upload_from_filename(temp_result_path)
 
