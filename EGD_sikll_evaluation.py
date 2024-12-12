@@ -47,6 +47,10 @@ if uploaded_files:
     if not name_endo:
         st.error("이름을 입력해 주세요.")
     else:
+        st.write("파일 분석 중...")  # 파일 분석 중 메시지
+        progress_bar = st.progress(0)  # 진행률 표시 바 생성
+        progress_text = st.empty()  # 진행률 텍스트 초기화
+
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
         os.makedirs(temp_dir, exist_ok=True)
@@ -68,6 +72,9 @@ if uploaded_files:
                 elif uploaded_file.name.endswith('.bmp'):
                     has_bmp = True
                     bmp_files.append(temp_path)
+
+        total_files = len(avi_files) + len(bmp_files)
+        processed_files = 0
 
         # AVI 파일 처리
         for file_path in avi_files:
