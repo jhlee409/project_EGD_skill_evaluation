@@ -102,7 +102,11 @@ if uploaded_files:
             duration = length / frame_rate
 
             st.write(f'동영상 길이: {int(duration // 60)}분 {int(duration % 60)}초')
-            st.write(f'동영상 frame 수: {length}')
+
+            # 동영상 길이 체크
+            if duration < 180 or duration > 300:  # 3분(180초)에서 5분(300초) 사이 체크
+                st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 3분에서 5분 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
+                break  # 분석 중단
 
             # 진행률 계산 및 표시
             for frame_count in range(length):
@@ -262,7 +266,7 @@ if uploaded_files:
                 progress = int(((idx + 1) / len(bmp_files)) * 100)
                 progress_text.text(f"이미지 분석 진행률: {progress}%")
 
-            # 현��� 날짜 가져오기
+            # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
             
             # 결과 이미지 임시 저장
