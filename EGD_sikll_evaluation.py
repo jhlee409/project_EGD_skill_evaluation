@@ -60,17 +60,16 @@ if uploaded_files:
         bmp_files = []
 
         # 업로드된 파일 저장 및 분류
-        with st.spinner('선택된 파일 파악 중...'):
-            for uploaded_file in uploaded_files:
-                temp_path = os.path.join(temp_dir, uploaded_file.name)
-                with open(temp_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                
-                if uploaded_file.name.endswith('.avi'):
-                    avi_files.append(temp_path)
-                elif uploaded_file.name.endswith('.bmp'):
-                    has_bmp = True
-                    bmp_files.append(temp_path)
+        for uploaded_file in uploaded_files:
+            temp_path = os.path.join(temp_dir, uploaded_file.name)
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            
+            if uploaded_file.name.endswith('.avi'):
+                avi_files.append(temp_path)
+            elif uploaded_file.name.endswith('.bmp'):
+                has_bmp = True
+                bmp_files.append(temp_path)
 
         total_files = len(avi_files) + len(bmp_files)
         processed_files = 0
