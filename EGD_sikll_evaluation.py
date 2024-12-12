@@ -128,9 +128,17 @@ if st.button("분석 시작"):
                     if radius > 8:
                         cv2.circle(frame, center, 30, (0, 0, 255), -1)
 
+                    # 프레임을 새로운 윈도우에 표시
+                    cv2.imshow('Video Analysis', frame)
+
+                    # 'q' 키를 누르면 분석을 중단합니다.
+                    if cv2.waitKey(int(1000 / frame_rate)) & 0xFF == ord('q'):
+                        break
+
                     ret, frame = camera.read()
 
                 camera.release()
+                cv2.destroyAllWindows()  # 모든 OpenCV 윈도우를 닫습니다.
 
                 k = list(pts)
                 array_k = np.array(k)
