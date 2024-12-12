@@ -47,6 +47,10 @@ if uploaded_files:
     if not name_endo:
         st.error("이름을 입력해 주세요.")
     else:
+        st.write("파일 분석 중...")  # 파일 분석 중 메시지
+        progress_bar = st.progress(0)  # 진행률 표시 바 생성
+        progress_text = st.empty()  # 진행률 텍스트 초기화
+
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
         os.makedirs(temp_dir, exist_ok=True)
@@ -57,23 +61,23 @@ if uploaded_files:
         bmp_files = []
 
         # 업로드된 파일 저장 및 분류
-        for uploaded_file in uploaded_files:
-            temp_path = os.path.join(temp_dir, uploaded_file.name)
-            with open(temp_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            
-            if uploaded_file.name.endswith('.avi'):
-                avi_files.append(temp_path)
-            elif uploaded_file.name.endswith('.bmp'):
-                has_bmp = True
-                bmp_files.append(temp_path)
+        with st.spinner('선택된 파일 파악 중...'):
+            for uploaded_file in uploaded_files:
+                temp_path = os.path.join(temp_dir, uploaded_file.name)
+                with open(temp_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                
+                if uploaded_file.name.endswith('.avi'):
+                    avi_files.append(temp_path)
+                elif uploaded_file.name.endswith('.bmp'):
+                    has_bmp = True
+                    bmp_files.append(temp_path)
 
         total_files = len(avi_files) + len(bmp_files)
         processed_files = 0
 
         # AVI 파일 처리
         for file_path in avi_files:
-            st.write(f"동영상 파일 분석: {file_path}")
             camera = cv2.VideoCapture(file_path)
             if not camera.isOpened():
                 st.error(f"동영상 파일을 열 수 없습니다: {file_path}")
@@ -90,10 +94,6 @@ if uploaded_files:
                 st.error("불합격: 권장 검사 시간 범위를 벗어났습니다.")
                 break
 
-            # # 진행률 표시 바 생성
-            progress_bar = st.progress(0)
-            progress_text = st.empty()
-            
             ret, frame = camera.read()
             pts = deque()
             ii = 1
@@ -105,7 +105,8 @@ if uploaded_files:
                 # 진행률 계산 및 표시
                 frame_count += 1
                 progress = int((frame_count / length) * 100)
-                progress_bar.progress(progress)
+                overall_progress = (processed_files / total_files) * 100 + (1 / total_files) * progress
+                progress_bar.progress(overall_progress)
                 progress_text.text(f"동영상 분석 진행률: {progress}%")
 
                 hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
