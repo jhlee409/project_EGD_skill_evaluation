@@ -57,7 +57,7 @@ if uploaded_files:
         bmp_files = []
 
         # 업로드된 파일 저장 및 분류
-        with st.spinner('선택된 파일 파악 중...'):
+        with st.spinner('파일을 저장하고 분류하는 중...'):
             for uploaded_file in uploaded_files:
                 temp_path = os.path.join(temp_dir, uploaded_file.name)
                 with open(temp_path, "wb") as f:
@@ -226,7 +226,7 @@ if uploaded_files:
             # A4 크기 설정 (300 DPI 기준)
             a4_width = 2480
             a4_height = 3508
-            images_per_row = 7
+            images_per_row = 8
             padding = 20
 
             # A4 크기의 빈 이미지 생성
