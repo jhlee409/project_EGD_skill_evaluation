@@ -47,12 +47,6 @@ if uploaded_files:
     if not name_endo:
         st.error("이름을 입력해 주세요.")
     else:
-        st.write(f"분석을 시작합니다, {name_endo}님.")
-
-        # 진행률 표시 바 생성
-        progress_bar = st.progress(0)
-        progress_text = st.empty()
-
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
         os.makedirs(temp_dir, exist_ok=True)
@@ -272,8 +266,8 @@ if uploaded_files:
             st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
 
         # 임시 파일 정리
-        for file_path in avi_files + bmp_files:
-            os.remove(file_path)
+        for file_path in os.listdir(temp_dir):
+            os.remove(os.path.join(temp_dir, file_path))
         os.rmdir(temp_dir)
 
         st.success("분석이 완료되었습니다.")
