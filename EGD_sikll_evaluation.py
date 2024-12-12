@@ -132,7 +132,7 @@ if st.button("분석 시작"):
                         cv2.circle(frame, center, 30, (0, 0, 255), -1)
 
                     # 프레임을 Streamlit 컨테이너에 표시
-                    frame_container.image(frame, channels="BGR", use_column_width=True)
+                    frame_container.image(frame, channels="BGR", use_container_width=True)
 
                     ret, frame = camera.read()
 
