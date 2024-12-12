@@ -32,8 +32,6 @@ if st.session_state.get('logged_in', False):  # 로그인 상태 확인
             # 필요시 추가적인 세션 상태 초기화 코드
             # 예: del st.session_state['logged_in'
 
-    # Streamlit UI
-    st.title("EGD Skill Evaluation")
     name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
     # 파일 업로더
