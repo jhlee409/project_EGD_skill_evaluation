@@ -46,240 +46,247 @@ if st.button("분석 시작"):
 
         # Firebase에서 파일 다운로드
         blobs = bucket.list_blobs(prefix='EGD_skill_evaluation/test/')
+        has_bmp = False
+        
         for blob in blobs:
             # blob이 디렉토리인 경우 건너뛰기
             if blob.name.endswith('/'):
                 continue
             
             # 파일 경로를 디렉토리와 파일 이름으로 설정
-            file_name = os.path.basename(blob.name)  # blob의 이름을 가져옵니다.
-            file_path = os.path.join('EGD_skill_evaluation', 'test', file_name)  # 전체 파일 경로를 만듭니다.
+            file_name = os.path.basename(blob.name)
+            file_path = os.path.join('EGD_skill_evaluation', 'test', file_name)
             
-            # 디렉토리가 없으면 생성합니다.
+            # 디렉토리가 없으면 생성
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             
-            # 파일을 다운로드합니다.
-            blob.download_to_filename(file_path)
-            st.write(f"다운로드 완료: {blob.name}")
-
-            # EGD_skill_evaluation.py의 처리 과정 적용
+            # avi 파일 처리
             if file_path.endswith('.avi'):
-                st.write(f"동영상 파일 분석: {file_path}")
-                camera = cv2.VideoCapture(file_path)
-                if not camera.isOpened():
-                    st.error(f"동영상 파일을 열 수 없습니다: {file_path}")
-                    continue
-
-                length = int(camera.get(cv2.CAP_PROP_FRAME_COUNT))
-                frame_rate = camera.get(cv2.CAP_PROP_FPS)
-                duration = length / frame_rate
-
-                st.write(f'동영상 길이(초): {int(duration)}')
-                st.write(f'동영상 frame 수: {length}')
-
-                if length < 8000 or length > 13000:
-                    st.error("불합격: 권장 검사 시간 범위를 벗어났습니다.")
-                    break
-
-                # 진행률 표시 바 생성
-                progress_bar = st.progress(0)
-                progress_text = st.empty()
+                # 파일을 다운로드
+                blob.download_to_filename(file_path)
+                st.write(f"다운로드 완료: {blob.name}")
                 
-                ret, frame = camera.read()
-                pts = deque()
-                ii = 1
-                angle_g = []
-                distance_g = []
-                frame_count = 0
+                # EGD_skill_evaluation.py의 처리 과정 적용
+                if file_path.endswith('.avi'):
+                    st.write(f"동영상 파일 분석: {file_path}")
+                    camera = cv2.VideoCapture(file_path)
+                    if not camera.isOpened():
+                        st.error(f"동영상 파일을 열 수 없습니다: {file_path}")
+                        continue
 
-                while ret:
-                    # 진행률 계산 및 표시
-                    frame_count += 1
-                    progress = int((frame_count / length) * 100)
-                    progress_bar.progress(progress)
-                    progress_text.text(f"동영상 분석 진행률: {progress}%")
+                    length = int(camera.get(cv2.CAP_PROP_FRAME_COUNT))
+                    frame_rate = camera.get(cv2.CAP_PROP_FPS)
+                    duration = length / frame_rate
 
-                    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-                    green_lower = np.array([35, 80, 50], np.uint8)
-                    green_upper = np.array([100, 255, 255], np.uint8)
-                    green = cv2.inRange(hsv, green_lower, green_upper)
+                    st.write(f'동영상 길이(초): {int(duration)}')
+                    st.write(f'동영상 frame 수: {length}')
 
-                    contours3, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    if contours3:
-                        g = max(contours3, key=cv2.contourArea)
-                        ga = cv2.contourArea(g)
-                    else:
-                        g = []
-                        ga = 0
+                    if length < 8000 or length > 13000:
+                        st.error("불합격: 권장 검사 시간 범위를 벗어났습니다.")
+                        break
 
-                    pts.append(ii)
-                    ii += 1
-
-                    if ga > 500:
-                        u = np.array(g)
-                        pts.append(2)
-                    else:
-                        u = np.array([[[0, 0]], [[1, 0]], [[2, 0]], [[2, 1]], [[2, 2]], [[1, 2]], [[0, 2]], [[0, 1]]])
-                        pts.append(3)
-
-                    M = cv2.moments(u)
-                    if M["m00"] != 0:
-                        px = abs(int(M["m10"] / M["m00"]))
-                        py = abs(int(M["m01"] / M["m00"]))
-                    else:
-                        px, py = 0, 0
-
-                    pts.append(px)
-                    pts.append(py)
-
-                    ((cx, cy), radius) = cv2.minEnclosingCircle(u)
-                    center = (int(cx), int(cy))
-                    radius = int(radius)
-                    pts.append(radius)
-
-                    if radius > 8:
-                        cv2.circle(frame, center, 30, (0, 0, 255), -1)
-
-                    ret, frame = camera.read()
-
-                camera.release()
-                progress_bar.progress(100)
-                progress_text.text("분석 완료!")
-
-                k = list(pts)
-                array_k = np.array(k)
-
-                frame_no = array_k[0::5]
-                timesteps = len(frame_no)
-                frame_no2 = np.reshape(frame_no, (timesteps, 1))
-
-                color = array_k[1::5]
-                color2 = np.reshape(color, (timesteps, 1))
-
-                x_value = array_k[2::5]
-                x_value2 = np.reshape(x_value, (timesteps, 1))
-
-                y_value = array_k[3::5]
-                y_value2 = np.reshape(y_value, (timesteps, 1))
-
-                radius2 = array_k[4::5]
-                radius3 = np.reshape(radius2, (timesteps, 1))
-
-                points = np.hstack([frame_no2, color2, x_value2, y_value2, radius3])
-
-                for i in range(timesteps - 1):
-                    if (points[i][1] != 3 and points[i + 1][1] != 3) and (points[i][1] == 2 and points[i + 1][1] == 2):
-                        a = points[i + 1][2] - points[i][2]
-                        b = points[i + 1][3] - points[i][3]
-                        angle_g = np.append(angle_g, degrees(atan2(a, b)))
-                        rr = points[i][4]
-                        delta_g = (np.sqrt((a * a) + (b * b))) / rr
-                        distance_g = np.append(distance_g, delta_g)
-                    else:
-                        distance_g = np.append(distance_g, 0)
-
-                mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
-                std_g = np.std([ggg for ggg in distance_g if ggg < 6])
-                x_train = np.array([[mean_g, std_g]])
-
-                # CSV 파일에 결과 저장
-                with open('x_train.csv', 'a', newline='') as w:
-                    writer = csv.writer(w)
-                    writer.writerows(x_train)
-
-                # 데이터 전처리 및 모델 예측
-                series2 = pd.read_csv('x_train.csv', header=None)
-                imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-                imp.fit(series2)
-                series = imp.transform(series2)
-
-                scaler = MinMaxScaler(feature_range=(0, 1))
-                scaler = scaler.fit(series)
-                normalized = scaler.transform(series)
-
-                x_train = normalized[0:-1]
-                x_test = normalized[-1]
-                x_test = np.reshape(x_test, (1, -1))
-
-                clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
-                clf.fit(x_train)
-
-                y_pred_test = clf.predict(x_test)
-                str4 = str(round(clf.decision_function(x_test)[0], 4))
-
-                if y_pred_test == 1:
-                    st.success('EGD 수행이 적절하게 진행되어 1단계 합격입니다.')
-                else:
-                    st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
-
-            elif file_path.endswith('.bmp'):
-                # 진행률 표시 바 생성
-                progress_bar = st.progress(0)
-                progress_text = st.empty()
-
-                # 모저 모든 bmp 파일 다운로드
-                bmp_files = []
-                total_blobs = list(bucket.list_blobs(prefix='EGD_skill_evaluation/test/'))
-                bmp_blobs = [blob for blob in total_blobs if blob.name.endswith('.bmp')]
-                
-                progress_text.text("BMP 파일 다운로드 중...")
-                for idx, blob in enumerate(bmp_blobs):
-                    local_path = os.path.join('EGD_skill_evaluation', 'test', os.path.basename(blob.name))
-                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
-                    blob.download_to_filename(local_path)
-                    bmp_files.append(local_path)
-                    # 다운로드 진행률 업데이트
-                    progress = int(((idx + 1) / len(bmp_blobs)) * 50)  # 전체 진행률의 50%를 다운로드에 할당
-                    progress_bar.progress(progress)
-
-                # A4 크기 설정 (300 DPI 기준)
-                a4_width = 2480  # 픽셀 단위
-                a4_height = 3508
-                images_per_row = 6
-                padding = 20
-
-                # A4 크기의 빈 이미지 생성 (흰색 배경)
-                result_image = Image.new('RGB', (a4_width, a4_height), 'white')
-                draw = ImageDraw.Draw(result_image)
-
-                # 각 이미지의 크기 계산
-                single_width = (a4_width - (padding * (images_per_row + 1))) // images_per_row
-
-                # 이미지 배치
-                progress_text.text("이미지 배치 중...")
-                x, y = padding, padding
-                for idx, bmp_file in enumerate(bmp_files):
-                    img = Image.open(bmp_file)
-                    img.thumbnail((single_width, single_width))
-                    result_image.paste(img, (x, y))
+                    # 진행률 표시 바 생성
+                    progress_bar = st.progress(0)
+                    progress_text = st.empty()
                     
-                    x += single_width + padding
-                    if (idx + 1) % images_per_row == 0:
-                        x = padding
-                        y += single_width + padding
+                    ret, frame = camera.read()
+                    pts = deque()
+                    ii = 1
+                    angle_g = []
+                    distance_g = []
+                    frame_count = 0
 
-                    # 이미지 배치 진행률 업데이트 (50%~100%)
-                    progress = 50 + int(((idx + 1) / len(bmp_files)) * 50)
-                    progress_bar.progress(progress)
+                    while ret:
+                        # 진행률 계산 및 표시
+                        frame_count += 1
+                        progress = int((frame_count / length) * 100)
+                        progress_bar.progress(progress)
+                        progress_text.text(f"동영상 분석 진행률: {progress}%")
 
-                # 현재 날짜 가져오기
-                current_date = datetime.now().strftime("%Y%m%d")
+                        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                        green_lower = np.array([35, 80, 50], np.uint8)
+                        green_upper = np.array([100, 255, 255], np.uint8)
+                        green = cv2.inRange(hsv, green_lower, green_upper)
+
+                        contours3, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                        if contours3:
+                            g = max(contours3, key=cv2.contourArea)
+                            ga = cv2.contourArea(g)
+                        else:
+                            g = []
+                            ga = 0
+
+                        pts.append(ii)
+                        ii += 1
+
+                        if ga > 500:
+                            u = np.array(g)
+                            pts.append(2)
+                        else:
+                            u = np.array([[[0, 0]], [[1, 0]], [[2, 0]], [[2, 1]], [[2, 2]], [[1, 2]], [[0, 2]], [[0, 1]]])
+                            pts.append(3)
+
+                        M = cv2.moments(u)
+                        if M["m00"] != 0:
+                            px = abs(int(M["m10"] / M["m00"]))
+                            py = abs(int(M["m01"] / M["m00"]))
+                        else:
+                            px, py = 0, 0
+
+                        pts.append(px)
+                        pts.append(py)
+
+                        ((cx, cy), radius) = cv2.minEnclosingCircle(u)
+                        center = (int(cx), int(cy))
+                        radius = int(radius)
+                        pts.append(radius)
+
+                        if radius > 8:
+                            cv2.circle(frame, center, 30, (0, 0, 255), -1)
+
+                        ret, frame = camera.read()
+
+                    camera.release()
+                    progress_bar.progress(100)
+                    progress_text.text("분석 완료!")
+
+                    k = list(pts)
+                    array_k = np.array(k)
+
+                    frame_no = array_k[0::5]
+                    timesteps = len(frame_no)
+                    frame_no2 = np.reshape(frame_no, (timesteps, 1))
+
+                    color = array_k[1::5]
+                    color2 = np.reshape(color, (timesteps, 1))
+
+                    x_value = array_k[2::5]
+                    x_value2 = np.reshape(x_value, (timesteps, 1))
+
+                    y_value = array_k[3::5]
+                    y_value2 = np.reshape(y_value, (timesteps, 1))
+
+                    radius2 = array_k[4::5]
+                    radius3 = np.reshape(radius2, (timesteps, 1))
+
+                    points = np.hstack([frame_no2, color2, x_value2, y_value2, radius3])
+
+                    for i in range(timesteps - 1):
+                        if (points[i][1] != 3 and points[i + 1][1] != 3) and (points[i][1] == 2 and points[i + 1][1] == 2):
+                            a = points[i + 1][2] - points[i][2]
+                            b = points[i + 1][3] - points[i][3]
+                            angle_g = np.append(angle_g, degrees(atan2(a, b)))
+                            rr = points[i][4]
+                            delta_g = (np.sqrt((a * a) + (b * b))) / rr
+                            distance_g = np.append(distance_g, delta_g)
+                        else:
+                            distance_g = np.append(distance_g, 0)
+
+                    mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
+                    std_g = np.std([ggg for ggg in distance_g if ggg < 6])
+                    x_train = np.array([[mean_g, std_g]])
+
+                    # CSV 파일에 결과 저장
+                    with open('x_train.csv', 'a', newline='') as w:
+                        writer = csv.writer(w)
+                        writer.writerows(x_train)
+
+                    # 데이터 전처리 및 모델 예측
+                    series2 = pd.read_csv('x_train.csv', header=None)
+                    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+                    imp.fit(series2)
+                    series = imp.transform(series2)
+
+                    scaler = MinMaxScaler(feature_range=(0, 1))
+                    scaler = scaler.fit(series)
+                    normalized = scaler.transform(series)
+
+                    x_train = normalized[0:-1]
+                    x_test = normalized[-1]
+                    x_test = np.reshape(x_test, (1, -1))
+
+                    clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
+                    clf.fit(x_train)
+
+                    y_pred_test = clf.predict(x_test)
+                    str4 = str(round(clf.decision_function(x_test)[0], 4))
+
+                    if y_pred_test == 1:
+                        st.success('EGD 수행이 적절하게 진행되어 1단계 합격입니다.')
+                    else:
+                        st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
+
+            # bmp 파일 발견 시 플래그만 설정
+            elif file_path.endswith('.bmp') and not has_bmp:
+                has_bmp = True
+
+        # BMP 파일 처리 (한 번만 실행)
+        if has_bmp:
+            # 진행률 표시 바 생성
+            progress_bar = st.progress(0)
+            progress_text = st.empty()
+
+            # 모든 bmp 파일 다운로드
+            bmp_files = []
+            total_blobs = list(bucket.list_blobs(prefix='EGD_skill_evaluation/test/'))
+            bmp_blobs = [blob for blob in total_blobs if blob.name.endswith('.bmp')]
+            
+            progress_text.text("BMP 파일 다운로드 중...")
+            for idx, blob in enumerate(bmp_blobs):
+                local_path = os.path.join('EGD_skill_evaluation', 'test', os.path.basename(blob.name))
+                os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                blob.download_to_filename(local_path)
+                bmp_files.append(local_path)
+                progress = int(((idx + 1) / len(bmp_blobs)) * 50)
+                progress_bar.progress(progress)
+
+            # A4 크기 설정 (300 DPI 기준)
+            a4_width = 2480
+            a4_height = 3508
+            images_per_row = 7
+            padding = 20
+
+            # A4 크기의 빈 이미지 생성
+            result_image = Image.new('RGB', (a4_width, a4_height), 'white')
+            draw = ImageDraw.Draw(result_image)
+
+            # 각 이미지의 크기 계산
+            single_width = (a4_width - (padding * (images_per_row + 1))) // images_per_row
+
+            # 이미지 배치
+            progress_text.text("이미지 배치 중...")
+            x, y = padding, padding
+            for idx, bmp_file in enumerate(bmp_files):
+                img = Image.open(bmp_file)
+                img.thumbnail((single_width, single_width))
+                result_image.paste(img, (x, y))
                 
-                # 결과 이미지 임시 저장
-                temp_result_path = f'temp_{name_endo}_{current_date}.png'
-                result_image.save(temp_result_path)
+                x += single_width + padding
+                if (idx + 1) % images_per_row == 0:
+                    x = padding
+                    y += single_width + padding
 
-                # Firebase Storage에 업로드
-                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
-                result_blob.upload_from_filename(temp_result_path)
+                progress = 50 + int(((idx + 1) / len(bmp_files)) * 50)
+                progress_bar.progress(progress)
 
-                # 임시 파일들 삭제
-                os.remove(temp_result_path)
-                for bmp_file in bmp_files:
-                    os.remove(bmp_file)
+            # 현재 날짜 가져오기
+            current_date = datetime.now().strftime("%Y%m%d")
+            
+            # 결과 이미지 임시 저장
+            temp_result_path = f'temp_{name_endo}_{current_date}.png'
+            result_image.save(temp_result_path)
 
-                progress_text.text("이미지 분석 완료!")
-                st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
+            # Firebase Storage에 업로드
+            result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
+            result_blob.upload_from_filename(temp_result_path)
+
+            # 임시 파일들 삭제
+            os.remove(temp_result_path)
+            for bmp_file in bmp_files:
+                os.remove(bmp_file)
+
+            progress_text.text("이미지 분석 완료!")
+            st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
 
         st.success("분석이 완료되었습니다.")
     else:
