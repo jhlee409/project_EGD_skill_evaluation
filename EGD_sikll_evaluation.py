@@ -277,7 +277,7 @@ plt.savefig('test_result.png')
 image4 = cv2.imread('test_result.png')
 image4 = cv2.cvtColor(image4, cv2.COLOR_BGR2RGB)
 
-str_total = str(name_endo) + " " + str(length) + "   " + str(len(fast2)) + "   " + str(mean_b) + "   " + str4 + "   " + str3 + "   " + str(len(img_list))
+str_total = str(name_endo) + " " + str(length) + "  " + str4 + "   " + str3 + "   " + str(len(img_list))
 height, width, _ = image4.shape
 pt = (20, height - 40)
 
