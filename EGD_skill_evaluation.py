@@ -48,13 +48,13 @@ name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
                                     accept_multiple_files=True,
                                     type=['avi', 'bmp', 'mp4'])
-st.divider()
+
 # 파일의 업로드 및 파악
 if uploaded_files:
     if not name_endo:
         st.error("이름을 입력해 주세요.")
     else:
-        st.write("파일 업로드 및 파악 중...")  # 파일 업로드 중 메시지
+        st.write("파일 업로드 및 파악")  # 파일 업로드 중 메시지
         
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
@@ -84,7 +84,7 @@ if uploaded_files:
         total_avi_files = len(avi_files)
         processed_files = 0
 
-        st.write("동영상 분석 중...")
+        st.write("동영상 분석")
 
         for file_path in avi_files:
             camera = cv2.VideoCapture(file_path)
