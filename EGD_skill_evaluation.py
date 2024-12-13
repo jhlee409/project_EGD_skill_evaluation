@@ -292,7 +292,7 @@ if uploaded_files:
                     st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
 
             # 추가할 텍스트
-            text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
+            text = f"Name: {name_endo}\nphoto number: {len(bmp_files)}\ntime: {datetime.now().strftime('%H:%M:%S')}\nresult: {str3}\nstr4: {str4}"
 
             # 텍스트 크기 계산
             text_bbox = draw.textbbox((0, 0), text, font=font)
