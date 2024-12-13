@@ -85,16 +85,60 @@ def analyze_video(file_path):
 def analyze_frames(camera, length):
     """프레임별 분석 함수"""
     pts = deque()
+    angle_g = []
+    distance_g = []
+    
     for frame_count in range(length):
         ret, frame = camera.read()
         if not ret:
             break
             
         g, ga = process_video_frame(frame)
-        frame_data = process_frame_data(frame_count, g, ga)
-        pts.extend(frame_data)
         
-    return np.array(pts)
+        if ga > 500:
+            u = np.array(g)
+        else:
+            u = np.array([[[0, 0]], [[1, 0]], [[2, 0]], [[2, 1]], [[2, 2]], [[1, 2]], [[0, 2]], [[0, 1]]])
+        
+        M = cv2.moments(u)
+        px = int(M["m10"] / M["m00"]) if M["m00"] != 0 else 0
+        py = int(M["m01"] / M["m00"]) if M["m00"] != 0 else 0
+        
+        ((cx, cy), radius) = cv2.minEnclosingCircle(u)
+        
+        pts.append([
+            frame_count + 1,
+            2 if ga > 500 else 3,
+            abs(px),
+            abs(py),
+            int(radius)
+        ])
+        
+        # Calculate angles and distances
+        if len(pts) > 1:
+            prev_point = pts[-2]
+            curr_point = pts[-1]
+            
+            if (prev_point[1] != 3 and curr_point[1] != 3) and (prev_point[1] == 2 and curr_point[1] == 2):
+                a = curr_point[2] - prev_point[2]  # x difference
+                b = curr_point[3] - prev_point[3]  # y difference
+                angle_g.append(degrees(atan2(a, b)))
+                rr = prev_point[4]  # radius
+                delta_g = (np.sqrt((a * a) + (b * b))) / rr if rr != 0 else 0
+                distance_g.append(delta_g)
+            else:
+                distance_g.append(0)
+    
+    # Calculate mean and std of distances
+    valid_distances = [d for d in distance_g if d < 6]
+    if valid_distances:
+        mean_g = np.mean(valid_distances)
+        std_g = np.std(valid_distances)
+    else:
+        mean_g = 0
+        std_g = 0
+    
+    return np.array([[mean_g, std_g]])
 
 def process_frame_data(frame_count, contour, area):
     """프레임 데이터 처리 함수"""
@@ -162,6 +206,46 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
     draw.text((PADDING, A4_HEIGHT - text_height - PADDING), text, 
               fill=(0, 0, 0), font=font, align="left")
 
+def process_analysis_results(points_data):
+    """분석 결과 처리 함수"""
+    # Save to CSV
+    with open('x_train.csv', 'a', newline='') as w:
+        writer = csv.writer(w)
+        writer.writerow(points_data[0])  # Write as a single row
+    
+    # Load and process data
+    series2 = pd.read_csv('x_train.csv', header=None)
+    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+    imp.fit(series2)
+    series = imp.transform(series2)
+    
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler = scaler.fit(series)
+    normalized = scaler.transform(series)
+    
+    x_train = normalized[0:-1]
+    x_test = normalized[-1]
+    x_test = np.reshape(x_test, (1, -1))
+    
+    clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
+    clf.fit(x_train)
+    
+    y_pred_test = clf.predict(x_test)
+    if y_pred_test == 1:
+        str3 = 'pass.'
+        st.success('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
+    else:
+        str3 = 'failure.'
+        st.error('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
+    
+    return str3, str(round(clf.decision_function(x_test)[0], 4))
+
+def cleanup_temp_files():
+    """임시 파일 정리 함수"""
+    for file_path in os.listdir(TEMP_DIR):
+        os.remove(os.path.join(TEMP_DIR, file_path))
+    os.rmdir(TEMP_DIR)
+
 def main():
     st.set_page_config(page_title="EGD_skill_evaluation")
     bucket = initialize_firebase()
@@ -226,44 +310,6 @@ def main():
         st.success("평가가 완료되었습니다.")
     elif uploaded_files and not name_endo:
         st.error("이름이 입력되지 않았습니다.")
-
-def process_analysis_results(points_data):
-    """분석 결과 처리 함수"""
-    with open('x_train.csv', 'a', newline='') as w:
-        writer = csv.writer(w)
-        writer.writerows(points_data)
-    
-    series2 = pd.read_csv('x_train.csv', header=None)
-    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-    imp.fit(series2)
-    series = imp.transform(series2)
-    
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler = scaler.fit(series)
-    normalized = scaler.transform(series)
-    
-    x_train = normalized[0:-1]
-    x_test = normalized[-1]
-    x_test = np.reshape(x_test, (1, -1))
-    
-    clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
-    clf.fit(x_train)
-    
-    y_pred_test = clf.predict(x_test)
-    if y_pred_test == 1:
-        str3 = 'pass.'
-        st.success('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
-    else:
-        str3 = 'failure.'
-        st.error('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
-    
-    return str3, str(round(clf.decision_function(x_test)[0], 4))
-
-def cleanup_temp_files():
-    """임시 파일 정리 함수"""
-    for file_path in os.listdir(TEMP_DIR):
-        os.remove(os.path.join(TEMP_DIR, file_path))
-    os.rmdir(TEMP_DIR)
 
 if __name__ == "__main__":
     main()
