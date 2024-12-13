@@ -283,13 +283,15 @@ if uploaded_files:
             text_position = (padding, single_width + padding * 2)  # 두 번째 줄에 위치
             text_color = (0, 0, 0)  # 검은색
             font_size = 12
-            font_path = "C:\\Windows\\Fonts\\NotoSansCJK-Regular.ttc"  # Malgun Gothic 폰트의 절대 경로
+            font_path = "C:\\Windows\\Fonts\\NotoSansCJK-Regular.ttc"  # Noto Sans CJK 폰트의 절대 경로
 
             # 폰트 로드
             try:
                 font = ImageFont.truetype(font_path, font_size)  # Noto Sans CJK 폰트 사용
             except OSError:
                 st.error("폰트를 로드할 수 없습니다. 경로를 확인하세요.")
+                # 기본 폰트로 대체
+                font = ImageFont.load_default()  # 기본 폰트 사용
 
             # 추가할 텍스트
             text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
