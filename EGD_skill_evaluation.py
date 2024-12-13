@@ -226,10 +226,8 @@ if uploaded_files:
 
                 y_pred_test = clf.predict(x_test)
                 if y_pred_test == 1:
-                    print('\n EGD 수행이 적절하게 진행되어 1단계 합격입니다.\n')
                     str3 = 'pass.'
                 else:
-                    print('\nEGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다. 다시 시도해 주세요 \n')
                     str3 = 'failure.'
                 str4 = str(round(clf.decision_function(x_test)[0], 4))
 
@@ -242,7 +240,7 @@ if uploaded_files:
 
         # BMP 파일 처리 (한 번만 실행)
         if has_bmp:
-            progress_text.text("이미지 분석 중...")
+            # progress_text.text("이미지 분석 중...")
             
             # A4 크기 설정 (300 DPI 기준)
             a4_width = 2480
@@ -268,9 +266,9 @@ if uploaded_files:
                 if (idx + 1) % images_per_row == 0:
                     x = padding
                     y += single_width + padding
-
                 progress = int(((idx + 1) / len(bmp_files)) * 100)
                 progress_text.text(f"이미지 분석 진행률: {progress}%")
+                st.progress(progress)
 
             # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
