@@ -38,7 +38,7 @@ if not firebase_admin._apps:
 bucket_name = 'amcgi-bulletin.appspot.com'
 bucket = storage.bucket(bucket_name)  # 항상 사용할 수 있도록 초기화
 
-st.markdown("**EGD_skill_evaluation**   V 1.0  by LEE, GIN HYUG")
+st.markdown("## EGD_skill_evaluation ##   V 1.0  by LEE, GIN HYUNG")
 st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수행의 적절성을 평가하는 페이지 입니다.")
 st.divider()
 
