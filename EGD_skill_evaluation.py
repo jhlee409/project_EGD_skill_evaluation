@@ -44,6 +44,8 @@ st.divider()
 
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
+st.write("파일 업로드 및 파악 과정") 
+
 # 파일 업로더
 uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
                                     accept_multiple_files=True,
@@ -54,8 +56,6 @@ if uploaded_files:
     if not name_endo:
         st.error("이름을 입력해 주세요.")
     else:
-        st.write("파일 업로드 및 파악 과정")  # 파일 업로드 중 메시지
-        
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
         os.makedirs(temp_dir, exist_ok=True)
