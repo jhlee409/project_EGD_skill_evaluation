@@ -280,8 +280,11 @@ if uploaded_files:
                     font = ImageFont.load_default()
                     st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
 
+            # 동영상 길이 저장
+            video_length = f"{int(duration // 60)}분 {int(duration % 60)}초"
+
             # 추가할 텍스트
-            text = f"photo number: {len(bmp_files)}\ntime: {datetime.now().strftime('%M:%S')}\nresult: {str3}\nstr4: {str4}"
+            text = f"photo number: {len(bmp_files)}\ntime: {video_length}\nresult: {str3}\nstr4: {str4}"
 
             # 텍스트 크기 계산
             text_bbox = draw.textbbox((0, 0), text, font=font)
