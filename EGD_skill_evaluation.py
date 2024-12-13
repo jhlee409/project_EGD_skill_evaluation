@@ -86,6 +86,37 @@ if uploaded_files:
         st.success("파일 업로드 및 파악이 완료되었습니다. 지금부터는 동영상 파일을 분석하겠습니다.")
         st.divider()
 
+        # BMP 파일 처리 (한 번만 실행)
+        if has_bmp:
+            # progress_text.text("이미지 분석 중...")
+            
+            # A4 크기 설정 (300 DPI 기준)
+            a4_width = 2480
+            a4_height = 3508
+            images_per_row = 8
+            padding = 20
+
+            # A4 크기의 빈 이미지 생성
+            result_image = Image.new('RGB', (a4_width, a4_height), 'white')
+            draw = ImageDraw.Draw(result_image)
+
+            # 각 이미지의 크기 계산
+            single_width = (a4_width - (padding * (images_per_row + 1))) // images_per_row
+
+            # 이미지 배치
+            x, y = padding, padding
+            for idx, bmp_file in enumerate(bmp_files):
+                img = Image.open(bmp_file)
+                img.thumbnail((single_width, single_width))
+                result_image.paste(img, (x, y))
+                
+                x += single_width + padding
+                if (idx + 1) % images_per_row == 0:
+                    x = padding
+                    y += single_width + padding
+                progress = int(((idx + 1) / len(bmp_files)) * 100)
+                progress_text.text(f"이미지 분석 진행률: {progress}%")
+
         # AVI 파일 처리
         total_avi_files = len(avi_files)
         processed_files = 0
@@ -238,37 +269,6 @@ if uploaded_files:
                     st.success('EGD 수행이 적절하게 진행되어 1단계 합격입니다.')
                 else:
                     st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
-
-        # BMP 파일 처리 (한 번만 실행)
-        if has_bmp:
-            # progress_text.text("이미지 분석 중...")
-            
-            # A4 크기 설정 (300 DPI 기준)
-            a4_width = 2480
-            a4_height = 3508
-            images_per_row = 8
-            padding = 20
-
-            # A4 크기의 빈 이미지 생성
-            result_image = Image.new('RGB', (a4_width, a4_height), 'white')
-            draw = ImageDraw.Draw(result_image)
-
-            # 각 이미지의 크기 계산
-            single_width = (a4_width - (padding * (images_per_row + 1))) // images_per_row
-
-            # 이미지 배치
-            x, y = padding, padding
-            for idx, bmp_file in enumerate(bmp_files):
-                img = Image.open(bmp_file)
-                img.thumbnail((single_width, single_width))
-                result_image.paste(img, (x, y))
-                
-                x += single_width + padding
-                if (idx + 1) % images_per_row == 0:
-                    x = padding
-                    y += single_width + padding
-                progress = int(((idx + 1) / len(bmp_files)) * 100)
-                progress_text.text(f"이미지 분석 진행률: {progress}%")
 
             # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
