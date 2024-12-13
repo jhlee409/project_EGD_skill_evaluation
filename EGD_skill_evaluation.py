@@ -277,7 +277,7 @@ if uploaded_files:
             text_position = (padding, single_width + padding * 2)  # 두 번째 줄에 위치
             text_color = (0, 0, 0)  # 검은색
             font_size = 12
-            font_path = "C:\\Windows\\Fonts\\Malgun Gothic.ttf"  # Malgun Gothic 폰트의 절대 경로
+            font_path = "C:\\Windows\\Fonts\\맑은 고딕.ttf"  # Malgun Gothic 폰트의 절대 경로
             font = ImageFont.truetype(font_path, font_size)  # Malgun Gothic 폰트 사용
 
             # 추가할 텍스트
