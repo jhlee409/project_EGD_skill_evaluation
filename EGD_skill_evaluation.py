@@ -228,7 +228,6 @@ if uploaded_files:
                     st.error('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
                 str4 = str(round(clf.decision_function(x_test)[0], 4))
 
-                st.write(str4)            # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
 
         st.divider()
