@@ -277,7 +277,8 @@ if uploaded_files:
             text_position = (padding, single_width + padding * 2)  # 두 번째 줄에 위치
             text_color = (0, 0, 0)  # 검은색
             font_size = 12
-            font = ImageFont.truetype("Malgun Gothic.ttf", font_size)  # Malgun Gothic 폰트 사용
+            font_path = "C:\\Windows\\Fonts\\Malgun Gothic.ttf"  # Malgun Gothic 폰트의 절대 경로
+            font = ImageFont.truetype(font_path, font_size)  # Malgun Gothic 폰트 사용
 
             # 추가할 텍스트
             text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
@@ -289,6 +290,9 @@ if uploaded_files:
 
             progress_text.text("이미지 분석 완료!")
             st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
+
+            # 최종 결과 이미지 보여주기
+            st.image(temp_result_path, caption='최종 분석 결과', use_column_width=True)  # 결과 이미지 표시
 
         # 임시 파일 정리
         for file_path in os.listdir(temp_dir):
