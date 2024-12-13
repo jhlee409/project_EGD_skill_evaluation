@@ -276,28 +276,35 @@ if uploaded_files:
             current_date = datetime.now().strftime("%Y%m%d")
             
             # 텍스트 추가
-            text_position = (padding, single_width + padding * 2)  # 두 번째 줄에 위치
+            font_size = 30  # 폰트 크기를 더 크게 설정
             text_color = (0, 0, 0)  # 검은색
-            font_size = 12
 
             # Linux 시스템용 폰트 경로 설정
             try:
-                # Ubuntu/Debian 시스템의 기본 폰트 경로
                 font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
                 font = ImageFont.truetype(font_path, font_size)
             except OSError:
                 try:
-                    # 다른 가능한 폰트 경로
                     font_path = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
                     font = ImageFont.truetype(font_path, font_size)
                 except OSError:
-                    # 폰트를 찾을 수 없는 경우 기본 폰트 사용
                     font = ImageFont.load_default()
                     st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
 
             # 추가할 텍스트
             text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
-            draw.text(text_position, text, fill=text_color, font=font)
+
+            # 텍스트 크기 계산
+            text_bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = text_bbox[2] - text_bbox[0]
+            text_height = text_bbox[3] - text_bbox[1]
+
+            # 텍스트 위치 계산 (가운데 정렬)
+            x = (a4_width - text_width) // 2  # 가로 중앙
+            y = a4_height // 2  # 세로 중앙
+
+            # 텍스트 그리기
+            draw.text((x, y), text, fill=text_color, font=font, align="center")
 
             # 결과 이미지 임시 저장
             temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
