@@ -334,7 +334,7 @@ if uploaded_files:
             st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
 
             # 이메일 전송
-            recipient_email = "recipient@example.com"  # 수신자 이메일 주소
+            recipient_email = "jhlee409@gmail.com"  # 수신자 이메일 주소
             send_email(temp_result_path, recipient_email)
 
             # 최종 결과 이미지 보여주기
