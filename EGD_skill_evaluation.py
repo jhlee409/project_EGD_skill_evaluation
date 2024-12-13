@@ -9,12 +9,12 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.impute import SimpleImputer
 from sklearn import svm
 from math import atan2, degrees
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, storage
 
-st.set_page_config(page_title="EGD_skill_evaluation", layout="wide")
+st.set_page_config(page_title="EGD_skill_evaluation")
 
 # Firebase 초기화
 if not firebase_admin._apps:
@@ -273,7 +273,17 @@ if uploaded_files:
             temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
             result_image.save(temp_result_path)
 
-            # Firebase Storage에 ���로드
+            # 텍스트 추가
+            text_position = (padding, single_width + padding * 2)  # 두 번째 줄에 위치
+            text_color = (0, 0, 0)  # 검은색
+            font_size = 12
+            font = ImageFont.truetype("arial.ttf", font_size)  # Arial 폰트 사용
+
+            # 추가할 텍스트
+            text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
+            draw.text(text_position, text, fill=text_color, font=font)
+
+            # Firebase Storage에 업로드
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             result_blob.upload_from_filename(temp_result_path)
 
