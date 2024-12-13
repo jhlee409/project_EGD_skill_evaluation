@@ -48,14 +48,14 @@ st.divider()
 st.subheader("- 파일 업로드 및 파악 과정-") 
 
 # 파일 업로더
-uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
+uploaded_files = st.file_uploader("분석할 파일들을 탐색기에서 찾아 모두 선택해주세요", 
                                     accept_multiple_files=True,
                                     type=['avi', 'bmp', 'mp4'])
 
 # 파일의 업로드 및 파악
 if uploaded_files:
     if not name_endo:
-        st.error("이름을 입력해 주세요.")
+        st.error("이름이 입력되지 않았습니다.")
     else:
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
