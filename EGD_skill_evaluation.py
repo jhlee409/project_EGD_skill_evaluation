@@ -58,7 +58,6 @@ if uploaded_files:
         progress_text = st.empty()  # 진행률 텍스트 초기화
         st.write("파일 업로드 및 파악 중...")  # 파일 업로드 중 메시지
         
-        st.success("파일 업로드 및 파악이 완료되었습니다. 지금부터는 동영상 파일을 분석하겠습니다.")
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
         os.makedirs(temp_dir, exist_ok=True)
@@ -84,6 +83,7 @@ if uploaded_files:
             # 진행률 계산 및 표시
             progress = int(((idx + 1) / total_files) * 100)
             progress_text.text(f"파일 업로드 진행률: {progress}%")
+            st.success("파일 업로드 및 파악이 완료되었습니다. 지금부터는 동영상 파일을 분석하겠습니다.")
 
         # AVI 파일 처리
         total_avi_files = len(avi_files)
