@@ -231,6 +231,7 @@ if uploaded_files:
             current_date = datetime.now().strftime("%Y%m%d")
 
         st.divider()
+        st.write("이미지 저장")
 
         # BMP 파일 처리 (한 번만 실행)
         if has_bmp:            
@@ -303,7 +304,7 @@ if uploaded_files:
             st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
 
             # 최종 결과 이미지 보여주기
-            st.image(temp_result_path, caption='최종 분석 결과', use_container_width=True)  # 결과 이미지 표시
+            st.image(temp_result_path, use_container_width=True)  # 결과 이미지 표시
 
         # 임시 파일 정리
         for file_path in os.listdir(temp_dir):
