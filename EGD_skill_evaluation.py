@@ -281,7 +281,7 @@ if uploaded_files:
                     st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
 
             # 동영상 길이 저장
-            video_length = f"{int(duration // 60)}분 {int(duration % 60)}초"
+            video_length = f"{int(duration // 60)}min {int(duration % 60)}sec"
 
             # 추가할 텍스트
             text = f"photo number: {len(bmp_files)}\ntime: {video_length}\nresult: {str3}\nstr4: {str4}"
