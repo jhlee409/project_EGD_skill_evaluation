@@ -19,7 +19,7 @@ from firebase_admin import credentials, storage
 TEMP_DIR = "temp_files"
 GREEN_LOWER = np.array([35, 80, 50], np.uint8)
 GREEN_UPPER = np.array([100, 255, 255], np.uint8)
-MIN_VIDEO_DURATION = 180  # 3 minutes
+MIN_VIDEO_DURATION = 150  # 2.5 minutes
 MAX_VIDEO_DURATION = 330  # 5.5 minutes
 A4_WIDTH = 2480
 A4_HEIGHT = 3508
@@ -75,7 +75,7 @@ def analyze_video(file_path):
     st.write(f'동영상 길이: {int(duration // 60)} 분  {int(duration % 60)} 초')
     
     if duration < MIN_VIDEO_DURATION or duration > MAX_VIDEO_DURATION:
-        st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 3분에서 5분 30초 사이의 범위를 벗어납니다.")
+        st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분 30초에서 5분 30초 사이의 범위를 벗어납니다.")
         camera.release()
         return None
     
