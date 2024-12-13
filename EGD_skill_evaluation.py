@@ -44,7 +44,8 @@ st.divider()
 
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 
-st.write("파일 업로드 및 파악 과정") 
+st.divider()
+st.subheader("- 파일 업로드 및 파악 과정-") 
 
 # 파일 업로더
 uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
@@ -84,7 +85,7 @@ if uploaded_files:
         total_avi_files = len(avi_files)
         processed_files = 0
 
-        st.write("동영상 분석 과정")
+        st.subheader("- 동영상 분석 과정 -")
 
         for file_path in avi_files:
             camera = cv2.VideoCapture(file_path)
@@ -231,7 +232,7 @@ if uploaded_files:
             current_date = datetime.now().strftime("%Y%m%d")
 
         st.divider()
-        st.write("이미지 저장")
+        st.subheader("- 이미지 저장 과정 -")
 
         # BMP 파일 처리 (한 번만 실행)
         if has_bmp:            
