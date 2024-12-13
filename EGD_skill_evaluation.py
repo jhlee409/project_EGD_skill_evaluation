@@ -290,7 +290,7 @@ if uploaded_files:
                 font = ImageFont.truetype(font_path, font_size)  # Noto Sans CJK 폰트 사용
             except OSError:
                 st.error("폰트를 로드할 수 없습니다. 경로를 확인하세요.")
-                # 기본 폰트로 대체
+                # 기��� 폰트로 대체
                 font = ImageFont.load_default()  # 기본 폰트 사용
 
             # 추가할 텍스트
@@ -305,7 +305,7 @@ if uploaded_files:
             st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
 
             # 최종 결과 이미지 보여주기
-            st.image(temp_result_path, caption='최종 분석 결과', use_column_width=True)  # 결과 이미지 표시
+            st.image(temp_result_path, caption='최종 분석 결과', use_container_width=True)  # 결과 이미지 표시
 
         # 임시 파일 정리
         for file_path in os.listdir(temp_dir):
