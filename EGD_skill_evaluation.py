@@ -54,7 +54,7 @@ if uploaded_files:
     if not name_endo:
         st.error("이름을 입력해 주세요.")
     else:
-        st.write("파일 업로드 및 파악")  # 파일 업로드 중 메시지
+        st.write("파일 업로드 및 파악 과정")  # 파일 업로드 중 메시지
         
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
@@ -84,7 +84,7 @@ if uploaded_files:
         total_avi_files = len(avi_files)
         processed_files = 0
 
-        st.write("동영상 분석")
+        st.write("동영상 분석 과정")
 
         for file_path in avi_files:
             camera = cv2.VideoCapture(file_path)
@@ -221,10 +221,10 @@ if uploaded_files:
                 y_pred_test = clf.predict(x_test)
                 if y_pred_test == 1:
                     str3 = 'pass.'
-                    st.success('EGD 수행이 적절하게 진행되어 1단계 합격입니다.')
+                    st.success('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
                 else:
                     str3 = 'failure.'
-                    st.error('EGD 수행이 적절하게 진행되지 못했습니다. 1단계 불합격입니다.')
+                    st.error('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
                 str4 = str(round(clf.decision_function(x_test)[0], 4))
 
                 st.write(str4)            # 현재 날짜 가져오기
@@ -301,7 +301,7 @@ if uploaded_files:
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             result_blob.upload_from_filename(temp_result_path)
 
-            st.success(f"이미지 분석 결과가 저장되었습니다: {name_endo}_{current_date}.png")
+            st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
 
             # 최종 결과 이미지 보여주기
             st.image(temp_result_path, use_container_width=True)  # 결과 이미지 표시
@@ -311,4 +311,6 @@ if uploaded_files:
             os.remove(os.path.join(temp_dir, file_path))
         os.rmdir(temp_dir)
 
-        st.success("분석이 완료되었습니다.")
+        st.divider()
+
+        st.success("평가가 완료되었습니다.")
