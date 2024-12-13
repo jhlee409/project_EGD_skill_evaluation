@@ -80,9 +80,6 @@ if uploaded_files:
                 has_bmp = True
                 bmp_files.append(temp_path)
 
-            # 진행률 계산 및 표시
-            progress = int(((idx + 1) / total_files) * 100)
-            progress_text.text(f"파일 업로드 진행률: {progress}%")
         st.success("파일 업로드 및 파악이 완료되었습니다.")
         st.divider()
 
@@ -114,8 +111,6 @@ if uploaded_files:
                 if (idx + 1) % images_per_row == 0:
                     x = padding
                     y += single_width + padding
-                # progress = int(((idx + 1) / len(bmp_files)) * 100)
-                # progress_text.text(f"이미지 분석 진행률: {progress}%")
 
         # AVI 파일 처리
         total_avi_files = len(avi_files)
@@ -140,9 +135,6 @@ if uploaded_files:
 
             # 진행률 계산 및 표시
             for frame_count in range(length):
-                progress = int(((frame_count + 1) / length) * 100)
-                progress_text.text(f"동영상 분석 진행률: {progress}%")
-
                 ret, frame = camera.read()
                 if not ret:
                     break
