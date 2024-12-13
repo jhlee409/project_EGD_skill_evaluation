@@ -276,35 +276,23 @@ if uploaded_files:
             current_date = datetime.now().strftime("%Y%m%d")
             
             # 텍스트 추가
-            font_size = 100  # 폰트 크기를 50으로 설정
+            font_size = 50  # 폰트 크기를 50으로 설정
             text_color = (0, 0, 0)  # 검은색
 
             # Linux 시스템용 폰트 경로 설정
             try:
-                # Noto Sans CJK KR 폰트 시도
-                font_path = "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc"
+                font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"  # 볼드체 폰트 경로
                 font = ImageFont.truetype(font_path, font_size)
             except OSError:
                 try:
-                    # NanumGothic 폰트 시도
-                    font_path = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf"
+                    font_path = "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"  # 볼드체 폰트 경로
                     font = ImageFont.truetype(font_path, font_size)
                 except OSError:
-                    try:
-                        # Ubuntu Noto Sans CJK KR 폰트 시도
-                        font_path = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
-                        font = ImageFont.truetype(font_path, font_size)
-                    except OSError:
-                        try:
-                            # 다른 한글 폰트 경로 시도
-                            font_path = "/usr/share/fonts/truetype/noto/NotoSansKR-Bold.otf"
-                            font = ImageFont.truetype(font_path, font_size)
-                        except OSError:
-                            font = ImageFont.load_default()
-                            st.warning("한글 지원 폰트를 찾을 수 없어 기본 폰트를 사용합니다. 한글이 제대로 표시되지 않을 수 있습니다.")
+                    font = ImageFont.load_default()
+                    st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
 
             # 추가할 텍스트
-            text = f"이름: {name_endo}\n촬영 사진 수: {len(bmp_files)}\n검사 시간: {datetime.now().strftime('%H:%M:%S')}\n판정: {str3}\n점수: {str4}"
+            text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
 
             # 텍스트 크기 계산
             text_bbox = draw.textbbox((0, 0), text, font=font)
