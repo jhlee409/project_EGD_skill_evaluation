@@ -276,7 +276,7 @@ if uploaded_files:
             current_date = datetime.now().strftime("%Y%m%d")
             
             # 텍스트 추가
-            font_size = 50  # 폰트 크기를 50으로 설정
+            font_size = 100  # 폰트 크기를 50으로 설정
             text_color = (0, 0, 0)  # 검은색
 
             # Linux 시스템용 폰트 경로 설정
