@@ -140,6 +140,9 @@ if uploaded_files:
 
             # 진행률 계산 및 표시
             for frame_count in range(length):
+                progress = int(((frame_count + 1) / length) * 100)
+                progress_text.text(f"동영상 분석 진행률: {progress}%")
+
                 ret, frame = camera.read()
                 if not ret:
                     break
@@ -252,9 +255,6 @@ if uploaded_files:
 
                 clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
                 clf.fit(x_train)
-
-                progress = int(((frame_count + 1) / length) * 100)
-                progress_text.text(f"동영상 분석 진행률: {progress}%")
 
                 y_pred_test = clf.predict(x_test)
                 if y_pred_test == 1:
