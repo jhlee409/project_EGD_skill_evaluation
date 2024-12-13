@@ -275,23 +275,19 @@ if uploaded_files:
             # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
             
-            # # 텍스트 추가
-            # font_size = 50  # 폰트 크기를 50으로 설정
-            # text_color = (0, 0, 0)  # 검은색
+            # 텍스트 추가
+            font_size = 50  # 폰트 크기를 50으로 설정
+            text_color = (0, 0, 0)  # 검은색
 
-            font = ImageFont.truetype("C:/Windows/Fonts/malgun.ttf", 50)
-
-            # # Linux 시스템용 폰트 경로 설정
-            # try:
-            #     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"  # 볼드체 폰트 경로
-            #     font = ImageFont.truetype(font_path, font_size)
-            # except OSError:
-            #     try:
-            #         font_path = "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"  # 볼드체 폰트 경로
-            #         font = ImageFont.truetype(font_path, font_size)
-            #     except OSError:
-            #         font = ImageFont.load_default()
-            #         st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
+            # Windows 폰트 설정
+            try:
+                font = ImageFont.truetype("C:\\Windows\\Fonts\\malgun.ttf", font_size)  # 맑은 고딕 폰트
+            except OSError:
+                try:
+                    font = ImageFont.truetype("C:\\Windows\\Fonts\\MALGUN.TTF", font_size)  # 대문자로도 시도
+                except OSError:
+                    font = ImageFont.load_default()
+                    st.warning("맑은 고딕 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
 
             # 추가할 텍스트
             text = f"Name: {name_endo}\nphoto number: {len(bmp_files)}\ntime: {datetime.now().strftime('%M:%S')}\nresult: {str3}\nstr4: {str4}"
