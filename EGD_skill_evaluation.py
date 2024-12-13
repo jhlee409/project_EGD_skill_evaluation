@@ -275,10 +275,6 @@ if uploaded_files:
             # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
             
-            # 결과 이미지 임시 저장
-            temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
-            result_image.save(temp_result_path)
-
             # 텍스트 추가
             text_position = (padding, single_width + padding * 2)  # 두 번째 줄에 위치
             text_color = (0, 0, 0)  # 검은색
@@ -287,6 +283,10 @@ if uploaded_files:
             # 추가할 텍스트
             text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
             draw.text(text_position, text, fill=text_color, font=font)
+
+            # 결과 이미지 임시 저장
+            temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
+            result_image.save(temp_result_path)
 
             # Firebase Storage에 업로드
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
