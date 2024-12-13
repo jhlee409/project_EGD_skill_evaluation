@@ -11,6 +11,7 @@ from sklearn import svm
 from math import atan2, degrees
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
+import pytz
 import firebase_admin
 from firebase_admin import credentials, storage
 
@@ -285,7 +286,10 @@ def main():
         st.divider()
         st.subheader("- 동영상 분석 과정 -")
         
-        current_date = datetime.now().strftime("%Y%m%d")
+        # 한국 시간대로 현재 시간 설정
+        kst = pytz.timezone('Asia/Seoul')
+        current_date = datetime.now(kst).strftime("%Y%m%d")
+        
         for file_path in avi_files:
             points_data, duration = analyze_video(file_path)
             if points_data is not None:
@@ -297,7 +301,7 @@ def main():
             temp_result_path = create_result_image(bmp_files, name_endo, current_date, 
                                                  duration, str3, str4)
             
-            # Firebase Storage에 업로드
+            # Firebase Storage에 업로드 (파일명에 시간 포함)
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             result_blob.upload_from_filename(temp_result_path)
             
