@@ -268,7 +268,6 @@ if uploaded_files:
                     y += single_width + padding
                 progress = int(((idx + 1) / len(bmp_files)) * 100)
                 progress_text.text(f"이미지 분석 진행률: {progress}%")
-                st.progress(progress)
 
             # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
