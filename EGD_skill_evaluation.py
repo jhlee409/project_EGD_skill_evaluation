@@ -23,7 +23,7 @@ st.set_page_config(page_title="EGD_skill_evaluation")
 # 이메일 전송 함수 추가
 def send_email(file_path, recipient_email):
     sender_email = "jhlee409@gmail.com"  # 발신자 이메일 주소
-    sender_password = "qlalfqjsgh2021-1"  # 발신자 이메일 비밀번호
+    sender_password = "qlalfqjsgh2020-1"  # 발신자 이메일 비밀번호
 
     # 이메일 메시지 설정
     msg = MIMEMultipart()
