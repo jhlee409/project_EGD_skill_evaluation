@@ -276,7 +276,7 @@ if uploaded_files:
             current_date = datetime.now().strftime("%Y%m%d")
             
             # 텍스트 추가
-            font_size = 60  # 폰트 크기를 60으로 설정
+            font_size = 50  # 폰트 크기를 50으로 설정
             text_color = (0, 0, 0)  # 검은색
 
             # Linux 시스템용 폰트 경로 설정
@@ -299,9 +299,9 @@ if uploaded_files:
             text_width = text_bbox[2] - text_bbox[0]
             text_height = text_bbox[3] - text_bbox[1]
 
-            # 텍스트 위치 계산 (왼쪽 정렬, 아래에서 두 번째 줄)
+            # 텍스트 위치 계산 (왼쪽 정렬, 맨 아래 줄)
             x = padding  # 왼쪽 정렬
-            y = a4_height - (2 * text_height) - padding  # 아래에서 두 번째 줄
+            y = a4_height - text_height - padding  # 맨 아래 줄
 
             # 텍스트 그리기
             draw.text((x, y), text, fill=text_color, font=font, align="left")
