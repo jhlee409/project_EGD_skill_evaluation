@@ -100,8 +100,8 @@ if uploaded_files:
             st.write(f'동영상 길이: {int(duration // 60)} 분  {int(duration % 60)} 초')
 
             # 동영상 길이 체크
-            if duration < 180 or duration > 300:  # 3분(180초)에서 5분(300초) 사이 체크
-                st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 3분에서 5분 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
+            if duration < 180 or duration > 330:  # 3분(180초)에서 5분(300초) 사이 체크
+                st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 3분에서 5분 30초 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
                 break  # 분석 중단
 
             # 진행률 계산 및 표시
