@@ -279,8 +279,21 @@ if uploaded_files:
             text_position = (padding, single_width + padding * 2)  # 두 번째 줄에 위치
             text_color = (0, 0, 0)  # 검은색
             font_size = 12
-            font_path = "C:\\Windows\\Fonts\\Malgun Gothic.ttf"  # Malgun Gothic 폰트의 절대 경로
-            font = ImageFont.truetype(font_path, font_size)  # Malgun Gothic 폰트 사용
+
+            # Linux 시스템용 폰트 경로 설정
+            try:
+                # Ubuntu/Debian 시스템의 기본 폰트 경로
+                font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+                font = ImageFont.truetype(font_path, font_size)
+            except OSError:
+                try:
+                    # 다른 가능한 폰트 경로
+                    font_path = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
+                    font = ImageFont.truetype(font_path, font_size)
+                except OSError:
+                    # 폰트를 찾을 수 없는 경우 기본 폰트 사용
+                    font = ImageFont.load_default()
+                    st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
 
             # 추가할 텍스트
             text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
