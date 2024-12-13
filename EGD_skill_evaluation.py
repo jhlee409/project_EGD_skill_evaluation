@@ -48,7 +48,7 @@ name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
 uploaded_files = st.file_uploader("분석할 파일들을 선택해주세요", 
                                     accept_multiple_files=True,
                                     type=['avi', 'bmp', 'mp4'])
-
+st.divider()
 # 파일의 업로드 및 파악
 if uploaded_files:
     if not name_endo:
@@ -83,6 +83,8 @@ if uploaded_files:
         # AVI 파일 처리
         total_avi_files = len(avi_files)
         processed_files = 0
+
+        st.write("동영상 분석 중...")
 
         for file_path in avi_files:
             camera = cv2.VideoCapture(file_path)
@@ -228,7 +230,9 @@ if uploaded_files:
                 st.write(str4)            # 현재 날짜 가져오기
             current_date = datetime.now().strftime("%Y%m%d")
 
-                    # BMP 파일 처리 (한 번만 실행)
+        st.divider()
+
+        # BMP 파일 처리 (한 번만 실행)
         if has_bmp:            
             # A4 크기 설정 (300 DPI 기준)
             a4_width = 2480
