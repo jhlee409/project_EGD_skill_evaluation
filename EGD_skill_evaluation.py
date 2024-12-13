@@ -278,7 +278,9 @@ if uploaded_files:
             # 텍스트 추가
             text_position = (padding, single_width + padding * 2)  # 두 번째 줄에 위치
             text_color = (0, 0, 0)  # 검은색
-            font = ImageFont.load_default()  # 기본 폰트 사용
+            font_size = 12
+            font_path = "C:\\Windows\\Fonts\\Malgun Gothic.ttf"  # Malgun Gothic 폰트의 절대 경로
+            font = ImageFont.truetype(font_path, font_size)  # Malgun Gothic 폰트 사용
 
             # 추가할 텍스트
             text = f"Name: {name_endo}\n사진 수: {len(bmp_files)}\n시간: {datetime.now().strftime('%H:%M:%S')}\nstr3: {str3}\nstr4: {str4}"
