@@ -20,6 +20,31 @@ from email import encoders
 
 st.set_page_config(page_title="EGD_skill_evaluation")
 
+# 이메일 전송 함수 추가
+def send_email(file_path, recipient_email):
+    sender_email = "jhlee409@gmail.com"  # 발신자 이메일 주소
+    sender_password = "qlalfqjsgh2021-1"  # 발신자 이메일 비밀번호
+
+    # 이메일 메시지 설정
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    msg['Subject'] = "EGD Skill Evaluation Result"
+
+    # 파일 첨부
+    attachment = MIMEBase('application', 'octet-stream')
+    with open(file_path, 'rb') as f:
+        attachment.set_payload(f.read())
+    encoders.encode_base64(attachment)
+    attachment.add_header('Content-Disposition', f'attachment; filename={os.path.basename(file_path)}')
+    msg.attach(attachment)
+
+    # SMTP 서버에 연결하여 이메일 전송
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.send_message(msg)
+
 # Firebase 초기화
 if not firebase_admin._apps:
     # Streamlit Secrets에서 Firebase 설정 정보 로드
@@ -324,27 +349,3 @@ if uploaded_files:
 
         st.success("평가가 완료되었습니다.")
 
-# 이메일 전송 함수 추가
-def send_email(file_path, recipient_email):
-    sender_email = "jhlee409@gmail.com"  # 발신자 이메일 주소
-    sender_password = "qlalfqjsgh2021-1"  # 발신자 이메일 비밀번호
-
-    # 이메일 메시지 설정
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = recipient_email
-    msg['Subject'] = "EGD Skill Evaluation Result"
-
-    # 파일 첨부
-    attachment = MIMEBase('application', 'octet-stream')
-    with open(file_path, 'rb') as f:
-        attachment.set_payload(f.read())
-    encoders.encode_base64(attachment)
-    attachment.add_header('Content-Disposition', f'attachment; filename={os.path.basename(file_path)}')
-    msg.attach(attachment)
-
-    # SMTP 서버에 연결하여 이메일 전송
-    with smtplib.SMTP('smtp.gmail.com', 587) as server:
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.send_message(msg)
