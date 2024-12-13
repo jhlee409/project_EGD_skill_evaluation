@@ -13,37 +13,8 @@ from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, storage
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 
 st.set_page_config(page_title="EGD_skill_evaluation")
-
-# 이메일 전송 함수 추가
-def send_email(file_path, recipient_email):
-    sender_email = "jhlee409@gmail.com"  # 발신자 이메일 주소
-    sender_password = "qlalfqjsgh2020-1"  # 발신자 이메일 비밀번호
-
-    # 이메일 메시지 설정
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
-    msg['To'] = recipient_email
-    msg['Subject'] = "EGD Skill Evaluation Result"
-
-    # 파일 첨부
-    attachment = MIMEBase('application', 'octet-stream')
-    with open(file_path, 'rb') as f:
-        attachment.set_payload(f.read())
-    encoders.encode_base64(attachment)
-    attachment.add_header('Content-Disposition', f'attachment; filename={os.path.basename(file_path)}')
-    msg.attach(attachment)
-
-    # SMTP 서버에 연결하여 이메일 전송
-    with smtplib.SMTP('smtp.gmail.com', 587) as server:
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.send_message(msg)
 
 # Firebase 초기화
 if not firebase_admin._apps:
@@ -333,10 +304,6 @@ if uploaded_files:
 
             st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
 
-            # 이메일 전송
-            recipient_email = "jhlee409@gmail.com"  # 수신자 이메일 주소
-            send_email(temp_result_path, recipient_email)
-
             # 최종 결과 이미지 보여주기
             st.image(temp_result_path, use_container_width=True)  # 결과 이미지 표시
 
@@ -348,4 +315,3 @@ if uploaded_files:
         st.divider()
 
         st.success("평가가 완료되었습니다.")
-
