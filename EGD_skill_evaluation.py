@@ -283,20 +283,25 @@ if uploaded_files:
             try:
                 # Noto Sans CJK KR 폰트 시도
                 font_path = "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc"
-                font = ImageFont.truetype(font_path, font_size, layout_engine=ImageFont.LAYOUT_RAQM)
+                font = ImageFont.truetype(font_path, font_size)
             except OSError:
                 try:
                     # NanumGothic 폰트 시도
                     font_path = "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf"
-                    font = ImageFont.truetype(font_path, font_size, layout_engine=ImageFont.LAYOUT_RAQM)
+                    font = ImageFont.truetype(font_path, font_size)
                 except OSError:
                     try:
                         # Ubuntu Noto Sans CJK KR 폰트 시도
                         font_path = "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"
-                        font = ImageFont.truetype(font_path, font_size, layout_engine=ImageFont.LAYOUT_RAQM)
+                        font = ImageFont.truetype(font_path, font_size)
                     except OSError:
-                        font = ImageFont.load_default()
-                        st.warning("한글 지원 폰트를 찾을 수 없어 기본 폰트를 사용합니다. 한글이 제대로 표시되지 않을 수 있습니다.")
+                        try:
+                            # 다른 한글 폰트 경로 시도
+                            font_path = "/usr/share/fonts/truetype/noto/NotoSansKR-Bold.otf"
+                            font = ImageFont.truetype(font_path, font_size)
+                        except OSError:
+                            font = ImageFont.load_default()
+                            st.warning("한글 지원 폰트를 찾을 수 없어 기본 폰트를 사용합니다. 한글이 제대로 표시되지 않을 수 있습니다.")
 
             # 추가할 텍스트
             text = f"이름: {name_endo}\n촬영 사진 수: {len(bmp_files)}\n검사 시간: {datetime.now().strftime('%H:%M:%S')}\n판정: {str3}\n점수: {str4}"
