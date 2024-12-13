@@ -84,6 +84,7 @@ if uploaded_files:
             progress = int(((idx + 1) / total_files) * 100)
             progress_text.text(f"파일 업로드 진행률: {progress}%")
         st.success("파일 업로드 및 파악이 완료되었습니다. 지금부터는 동영상 파일을 분석하겠습니다.")
+        st.divider()
 
         # AVI 파일 처리
         total_avi_files = len(avi_files)
