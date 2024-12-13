@@ -276,16 +276,16 @@ if uploaded_files:
             current_date = datetime.now().strftime("%Y%m%d")
             
             # 텍스트 추가
-            font_size = 30  # 폰트 크기를 더 크게 설정
+            font_size = 60  # 폰트 크기를 60으로 설정
             text_color = (0, 0, 0)  # 검은색
 
             # Linux 시스템용 폰트 경로 설정
             try:
-                font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+                font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"  # 볼드체 폰트 경로
                 font = ImageFont.truetype(font_path, font_size)
             except OSError:
                 try:
-                    font_path = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
+                    font_path = "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"  # 볼드체 폰트 경로
                     font = ImageFont.truetype(font_path, font_size)
                 except OSError:
                     font = ImageFont.load_default()
@@ -299,12 +299,12 @@ if uploaded_files:
             text_width = text_bbox[2] - text_bbox[0]
             text_height = text_bbox[3] - text_bbox[1]
 
-            # 텍스트 위치 계산 (가운데 정렬)
-            x = (a4_width - text_width) // 2  # 가로 중앙
-            y = a4_height // 2  # 세로 중앙
+            # 텍스트 위치 계산 (왼쪽 정렬, 아래에서 두 번째 줄)
+            x = padding  # 왼쪽 정렬
+            y = a4_height - (2 * text_height) - padding  # 아래에서 두 번째 줄
 
             # 텍스트 그리기
-            draw.text((x, y), text, fill=text_color, font=font, align="center")
+            draw.text((x, y), text, fill=text_color, font=font, align="left")
 
             # 결과 이미지 임시 저장
             temp_result_path = os.path.join(temp_dir, f'{name_endo}_{current_date}.png')
