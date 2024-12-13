@@ -42,7 +42,7 @@ st.header("EGD_skill_evaluation")
 st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수행의 적절성을 평가하는 페이지 입니다.")
 st.divider()
 
-name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요:")
+name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: F1홍길동, R3아무개):")
 
 st.divider()
 st.subheader("- 파일 업로드 및 파악 과정-") 
@@ -97,7 +97,7 @@ if uploaded_files:
             frame_rate = camera.get(cv2.CAP_PROP_FPS)
             duration = length / frame_rate
 
-            st.write(f'동영상 길이: {int(duration // 60)}분 {int(duration % 60)}초')
+            st.write(f'동영상 길이: {int(duration // 60)} 분  {int(duration % 60)} 초')
 
             # 동영상 길이 체크
             if duration < 180 or duration > 300:  # 3분(180초)에서 5분(300초) 사이 체크
