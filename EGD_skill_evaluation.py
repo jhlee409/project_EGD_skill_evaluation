@@ -211,7 +211,7 @@ def create_result_image(bmp_files, name_endo, current_date, duration, str3, str4
     
     # 파일 이름에 타임스탬프 추가
     kst = pytz.timezone('Asia/Seoul')
-    timestamp = datetime.now(kst).strftime("%Y%m%d_%H%M%S")
+    current_date = datetime.now(kst).strftime("%Y%m%d")
     
     add_text_to_image(draw, len(bmp_files), duration, str3, str4)
     
@@ -304,6 +304,10 @@ def main():
         duration = None
         str3 = None
         str4 = None
+        
+        # 한국 시간으로 현재 시간 설정
+        kst = pytz.timezone('Asia/Seoul')
+        current_date = datetime.now(kst).strftime("%Y%m%d")
         
         for file_path in avi_files:
             result = analyze_video(file_path)
