@@ -229,7 +229,7 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
             st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
     
     video_length = f"{int(duration // 60)}분 {int(duration % 60)}초"
-    text = f"photo number: {photo_count}\nduration: {video_length}\nresult: {'pass' if str3 == 'pass.' else 'fail'}\nscore: {str4}"
+    text = f"photo number: {photo_count}\nduration: {video_length}\nresult: {str3}\nscore: {str4}"
     
     text_bbox = draw.textbbox((0, 0), text, font=font)
     text_height = text_bbox[3] - text_bbox[1]
