@@ -281,7 +281,10 @@ def main():
         
         st.divider()
         st.subheader("- 동영상 분석 과정 -")
-        
+        st.write(duration)
+        st.write(str3)
+        st.write(str4)
+
         # 한국 시간대로 현재 시간 설정
         kst = pytz.timezone('Asia/Seoul')
         current_date = datetime.now(kst).strftime("%Y%m%d")
