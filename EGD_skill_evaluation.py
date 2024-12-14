@@ -209,11 +209,15 @@ def create_result_image(bmp_files, name_endo, current_date, duration, str3, str4
             x = PADDING
             y += single_width + PADDING
     
+    # 파일 이름에 타임스탬프 추가
+    kst = pytz.timezone('Asia/Seoul')
+    timestamp = datetime.now(kst).strftime("%Y%m%d_%H%M%S")
+    
     add_text_to_image(draw, len(bmp_files), duration, str3, str4)
     
-    temp_result_path = os.path.join(TEMP_DIR, f'{name_endo}_{current_date}.png')
+    temp_result_path = os.path.join(TEMP_DIR, f'{name_endo}_{current_date}_{timestamp}.png')
     result_image.save(temp_result_path)
-    return temp_result_path
+    return temp_result_path, timestamp
 
 def add_text_to_image(draw, photo_count, duration, str3, str4):
     """이미지에 텍스트 추가 함수"""
@@ -269,11 +273,11 @@ def main():
     name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: F1홍길동, R3아무개):")
     
     st.divider()
-    st.subheader("- 파일 업로드 및 파악 과정-")
+    st.subheader("- 파일 업로드 및 파악 과정 -")
     
     uploaded_files = st.file_uploader("분석할 파일들을 탐색기에서 찾아 모두 선택해주세요", 
-                                    accept_multiple_files=True,
-                                    type=['avi', 'bmp', 'mp4'])
+                                      accept_multiple_files=True,
+                                      type=['avi', 'bmp', 'mp4'])
     
     if uploaded_files and name_endo:
         os.makedirs(TEMP_DIR, exist_ok=True)
@@ -297,42 +301,28 @@ def main():
         st.divider()
         st.subheader("- 동영상 분석 과정 -")
         
-        # 변수 초기화
         duration = None
         str3 = None
         str4 = None
         
-        # 비디오 분석
         for file_path in avi_files:
             result = analyze_video(file_path)
             if result:
                 str3, str4 = result
-                duration = result[1]  # duration 값을 저장
+                duration = result[1]
         
-        # duration 값이 None일 경우 에러 메시지 출력
-        if duration is None:
-            st.error("동영상 분석에 실패했습니다. 올바른 파일을 업로드했는지 확인해주세요.")
-            return
-        
-        st.write(duration)
-        st.write(str3)
-        st.write(str4)
-
-        # 한국 시간으로 현재 시간 설정
-        kst = pytz.timezone('Asia/Seoul')
-        current_date = datetime.now(kst).strftime("%Y%m%d")
-        
-        if has_bmp:
+        if has_bmp and duration is not None:
             st.divider()
             st.subheader("- 이미지 저장 과정 -")
-            temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)
             
-            # Firebase Storage에 업로드 (파일명에 시간 포함)
-            result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
+            temp_result_path, timestamp = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)
+            
+            # Firebase 업로드
+            result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}_{timestamp}.png')
             result_blob.upload_from_filename(temp_result_path)
             
-            st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
-            st.image(temp_result_path, use_container_width=True)
+            st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}_{timestamp}.png")
+            st.image(temp_result_path, use_container_width=True, key=timestamp)
         
         # 임시 파일 정리
         cleanup_temp_files()
