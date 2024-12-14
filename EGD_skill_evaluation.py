@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import cv2
 import numpy as np
+import sys
 from collections import deque
 import csv
 import pandas as pd
@@ -15,6 +16,11 @@ import pytz
 import firebase_admin
 from firebase_admin import credentials, storage
 
+# 버전 정보 출력
+st.write(f"Python 버전: {sys.version}")
+st.write(f"OpenCV 버전: {cv2.__version__}")
+st.write(f"NumPy 버전: {np.__version__}")
+
 # Constants
 TEMP_DIR = "temp_files"
 GREEN_LOWER = np.array([35, 80, 50], np.uint8)
@@ -26,6 +32,13 @@ A4_HEIGHT = 3508
 IMAGES_PER_ROW = 8
 PADDING = 20
 FONT_SIZE = 50
+
+# 고정된 훈련 데이터
+FIXED_TRAIN_DATA = np.array([
+    [0.2, 0.15],  # 예시 기준값 1
+    [0.3, 0.18],  # 예시 기준값 2
+    [0.25, 0.16]  # 예시 기준값 3
+])
 
 def initialize_firebase():
     """Firebase 초기화 함수"""
@@ -48,6 +61,12 @@ def initialize_firebase():
 
 def process_video_frame(frame):
     """비디오 프레임 처리 함수"""
+    # 프레임 크기 통일
+    frame = cv2.resize(frame, (640, 480))
+    
+    # 노이즈 제거
+    frame = cv2.GaussianBlur(frame, (5, 5), 0)
+    
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     green = cv2.inRange(hsv, GREEN_LOWER, GREEN_UPPER)
     contours, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -138,37 +157,37 @@ def analyze_frames(camera, length):
                 else:
                     distance_g = np.append(distance_g, 0)
     
+    # 최종 결과 계산 (높은 정밀도)
     mean_g = np.float64(np.mean([ggg for ggg in distance_g if ggg < 6]))
     std_g = np.float64(np.std([ggg for ggg in distance_g if ggg < 6]))
     x_test = np.array([[mean_g, std_g]])
 
-    if not os.path.exists('x_train.csv'):
-        x_train = np.array([
-            [0.2, 0.15],  # 예시 기준값 1
-            [0.3, 0.18],  # 예시 기준값 2
-            [0.25, 0.16]  # 예시 기준값 3
-        ])
-        np.savetxt('x_train.csv', x_train, delimiter=',')
-    
-    x_train = np.loadtxt('x_train.csv', delimiter=',')
+    # 고정된 훈련 데이터 사용
+    x_train = FIXED_TRAIN_DATA
 
+    # 데이터 정규화 및 모델 예측 (고정된 범위 사용)
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaler.fit(np.array([[0, 0], [1, 1]]))  # 고정된 범위로 스케일러 피팅
     x_train_scaled = scaler.transform(x_train)
     x_test_scaled = scaler.transform(x_test)
 
+    # 모델 학습 및 예측
     clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
     clf.fit(x_train_scaled)
-    y_pred_test = clf.predict(x_test_scaled)
     
-    str3 = 'pass' if y_pred_test == 1 else 'failure'
-    str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
+    # 판단 점수 계산 (여유 범위 추가)
+    decision_score = clf.decision_function(x_test_scaled)[0]
+    margin = 0.05  # 5%의 여유 범위
     
-    if y_pred_test == 1:
+    if decision_score > -margin:  # 여유 범위를 고려한 판단
+        str3 = 'pass'
         st.write('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
     else:
+        str3 = 'failure'
         st.write('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
-    st.write(f"판단 점수: {str4}")
+    
+    str4 = str(round(decision_score, 4))
+    st.write(f"판단 점수: {str4} (여유 범위: ±{margin})")
     
     return str3, str4
 
