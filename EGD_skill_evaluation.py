@@ -159,7 +159,7 @@ def analyze_frames(camera, length):
     y_pred_test = clf.predict(x_test_scaled)
     
     # 결과 반환
-    str3 = 'pass.' if y_pred_test == 1 else 'failure.'
+    str3 = 'pass' if y_pred_test == 1 else 'failure'
     str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
     
     # 최종 결과만 출력
@@ -238,9 +238,9 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
     # duration을 'min sec' 형식으로 변환
     video_length = f"{int(duration // 60)} min {int(duration % 60)} sec"
     
-    # str3에서 pass/fail만 추출하고 str4에서 점수만 추출
-    result_text = str3[0] if isinstance(str3, tuple) else str3
-    score_text = str4[1] if isinstance(str4, tuple) else str4
+    # str3에서 마침표 제거하고 str4를 숫자로 변환
+    result_text = str3.rstrip('.') if isinstance(str3, str) else str3
+    score_text = f"{float(str4):.5f}" if isinstance(str4, str) else str4
     
     # 텍스트 생성
     text = (
