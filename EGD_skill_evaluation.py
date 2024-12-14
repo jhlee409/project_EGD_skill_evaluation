@@ -215,6 +215,9 @@ def create_result_image(bmp_files, name_endo, current_date, duration, str3, str4
     
     add_text_to_image(draw, len(bmp_files), duration, str3, str4)
     
+    # 타임스탬프 생성
+    timestamp = datetime.now(kst).strftime("%H%M%S")  # 현재 시간을 기반으로 타임스탬프 생성
+    
     temp_result_path = os.path.join(TEMP_DIR, f'{name_endo}_{current_date}_{timestamp}.png')
     result_image.save(temp_result_path)
     return temp_result_path, timestamp
