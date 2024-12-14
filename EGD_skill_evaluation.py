@@ -64,6 +64,10 @@ def process_video_frame(frame):
 def analyze_video(file_path):
     """비디오 분석 함수"""
     camera = cv2.VideoCapture(file_path)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    camera.set(cv2.CAP_PROP_FPS, 30)  # 고정된 프레임 레이트
+    
     if not camera.isOpened():
         st.error(f"동영상 파일을 열 수 없습니다: {file_path}")
         return None
@@ -83,15 +87,21 @@ def analyze_video(file_path):
 
 def analyze_frames(camera, length):
     """프레임별 분석 함수"""
+    np.seterr(all='raise')
+    np.set_printoptions(precision=10)
+    
+    frames = []
+    for _ in range(length):
+        ret, frame = camera.read()
+        if not ret:
+            break
+        frames.append(frame)
+    
     pts = deque()
     angle_g = np.array([])
     distance_g = np.array([])
     
-    for frame_count in range(length):
-        ret, frame = camera.read()
-        if not ret:
-            break
-            
+    for frame_count, frame in enumerate(frames):
         g, ga = process_video_frame(frame)
         
         if ga > 500:
@@ -113,7 +123,6 @@ def analyze_frames(camera, length):
             int(radius)
         ])
         
-        # Calculate angles and distances
         if len(pts) > 1:
             prev_point = pts[-2]
             curr_point = pts[-1]
@@ -129,15 +138,10 @@ def analyze_frames(camera, length):
                 else:
                     distance_g = np.append(distance_g, 0)
     
-    # 최종 결과 계산
-    mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
-    std_g = np.std([ggg for ggg in distance_g if ggg < 6])
+    mean_g = np.float64(np.mean([ggg for ggg in distance_g if ggg < 6]))
+    std_g = np.float64(np.std([ggg for ggg in distance_g if ggg < 6]))
     x_test = np.array([[mean_g, std_g]])
 
-    # 결과의 일관성을 위해 랜덤 시드 설정
-    np.random.seed(42)
-
-    # 기존 훈련 데이터 로드
     if not os.path.exists('x_train.csv'):
         x_train = np.array([
             [0.2, 0.15],  # 예시 기준값 1
@@ -148,21 +152,18 @@ def analyze_frames(camera, length):
     
     x_train = np.loadtxt('x_train.csv', delimiter=',')
 
-    # 데이터 정규화 및 모델 예측
     scaler = MinMaxScaler(feature_range=(0, 1))
-    x_train_scaled = scaler.fit_transform(x_train)
+    scaler.fit(np.array([[0, 0], [1, 1]]))  # 고정된 범위로 스케일러 피팅
+    x_train_scaled = scaler.transform(x_train)
     x_test_scaled = scaler.transform(x_test)
 
-    # 모델 학습 및 예측
     clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
     clf.fit(x_train_scaled)
     y_pred_test = clf.predict(x_test_scaled)
     
-    # 결과 반환
     str3 = 'pass' if y_pred_test == 1 else 'failure'
     str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
     
-    # 최종 결과만 출력
     if y_pred_test == 1:
         st.write('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
     else:
@@ -209,7 +210,6 @@ def create_result_image(bmp_files, name_endo, current_date, duration, str3):
             x = PADDING
             y += single_width + PADDING
     
-    # 파일 이름에 타임스탬프 추가
     kst = pytz.timezone('Asia/Seoul')
     current_date = datetime.now(kst).strftime("%Y%m%d")
     
@@ -227,53 +227,21 @@ def add_text_to_image(draw, photo_count, duration, str3):
     except OSError:
         try:
             font_path = "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"
-            font = ImageFont.truetype(font_path, FONT_SIZE)# 결과의 일관성을 위해 랜덤 시드 설정
-            np.random.seed(42){{ ... }}
-            # 코드 최상단에 추가
-            import numpy as np
-            import random
-            np.random.seed(42)
-            random.seed(42)
-            cv2.setRNGSeed(42)
-            {{ ... }}{{ ... }}
-            # 코드 최상단에 추가
-            import numpy as np
-            import random
-            np.random.seed(42)
-            random.seed(42)
-            cv2.setRNGSeed(42)
-            {{ ... }}{{ ... }}
-            while True:
-                ret, frame = camera.read()
-                if not ret:
-                    print("[DEBUG] 더 이상 읽을 프레임이 없습니다.")
-                    break
-            
-                # 고정된 시간 간격으로 프레임 처리
-                if frame_count % int(frame_rate) == 0:  # 1초에 한 번씩 처리
-                    # 기존 프레임 처리 코드
-                    ...
-                
-                frame_count += 1
-            {{ ... }}
+            font = ImageFont.truetype(font_path, FONT_SIZE)
         except OSError:
             font = ImageFont.load_default()
             st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
     
-    # duration을 'min sec' 형식으로 변환
     video_length = f"{int(duration // 60)} min {int(duration % 60)} sec"
     
-    # str3에서 마침표 제거
     result_text = str3.rstrip('.') if isinstance(str3, str) else str3
     
-    # 텍스트 생성
     text = (
         f"photo number: {photo_count}\n"
         f"duration: {video_length}\n"
         f"result: {result_text}"
     )
     
-    # 텍스트 위치 및 크기 계산
     text_bbox = draw.textbbox((0, 0), text, font=font)
     text_height = text_bbox[3] - text_bbox[1]
     
@@ -306,11 +274,9 @@ def main():
     if uploaded_files and name_endo:
         os.makedirs(TEMP_DIR, exist_ok=True)
         
-        # 한국 시간으로 현재 날짜 및 시간 설정
         kst = pytz.timezone('Asia/Seoul')
         current_date = datetime.now(kst).strftime("%Y%m%d")
         
-        # 파일 분류 및 처리
         avi_files = []
         bmp_files = []
         has_bmp = False
@@ -329,7 +295,6 @@ def main():
         st.divider()
         st.subheader("- 동영상 분석 과정 -")
         
-        # 동영상 분석 결과 변수 초기화
         duration = None
         str3 = None
         str4 = None
@@ -344,24 +309,19 @@ def main():
             st.divider()
             st.subheader("- 이미지 저장 과정 -")
             
-            # 이미지 생성 및 저장
             temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3)
             
-            # Firebase 업로드
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             result_blob.upload_from_filename(temp_result_path)
             
             st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
             st.image(temp_result_path, use_container_width=True)
         
-        # 임시 파일 정리
         cleanup_temp_files()
         st.divider()
         st.success("평가가 완료되었습니다.")
     elif uploaded_files and not name_endo:
         st.error("이름이 입력되지 않았습니다.")
-
-
 
 if __name__ == "__main__":
     main()
