@@ -50,7 +50,7 @@ def process_video_frame(frame):
     """비디오 프레임 처리 함수"""
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     green = cv2.inRange(hsv, GREEN_LOWER, GREEN_UPPER)
-    contours, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)l
+    contours, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     
     if contours:
         g = max(contours, key=cv2.contourArea)
