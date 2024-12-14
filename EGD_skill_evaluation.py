@@ -238,16 +238,14 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
     # duration을 'min sec' 형식으로 변환
     video_length = f"{int(duration // 60)} min {int(duration % 60)} sec"
     
-    # str3에서 마침표 제거하고 str4를 숫자로 변환
+    # str3에서 마침표 제거
     result_text = str3.rstrip('.') if isinstance(str3, str) else str3
-    score_text = f"{float(str4):.5f}" if isinstance(str4, str) else str4
     
     # 텍스트 생성
     text = (
         f"photo number: {photo_count}\n"
         f"duration: {video_length}\n"
-        f"result: {result_text}\n"
-        f"score: {score_text}"
+        f"result: {result_text}"
     )
     
     # 텍스트 위치 및 크기 계산
