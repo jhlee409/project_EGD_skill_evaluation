@@ -89,7 +89,13 @@ def analyze_frames(camera, length):
     angle_g = []
     distance_g = []
     
+    st.write("프레임 분석 시작")
+    progress_bar = st.progress(0)
+    
     for frame_count in range(length):
+        progress = (frame_count + 1) / length
+        progress_bar.progress(progress)
+        
         ret, frame = camera.read()
         if not ret:
             break
@@ -125,18 +131,29 @@ def analyze_frames(camera, length):
                 b = curr_point[3] - prev_point[3]  # y difference
                 angle_g.append(degrees(atan2(a, b)))
                 rr = prev_point[4]  # radius
-                delta_g = (np.sqrt((a * a) + (b * b))) / rr if rr != 0 else 0
-                distance_g.append(delta_g)
+                if rr != 0:
+                    delta_g = (np.sqrt((a * a) + (b * b))) / rr
+                    distance_g.append(delta_g)
+                    if frame_count % 30 == 0:  # 30프레임마다 중간값 출력
+                        st.write(f"Frame {frame_count}: delta_g = {delta_g:.4f}, rr = {rr}")
             else:
                 distance_g.append(0)
     
-    # Calculate mean and std of distances
+    # 디버깅을 위한 중간값 출력
+    valid_distances = [d for d in distance_g if d < 6]
+    st.write(f"총 거리 측정값 개수: {len(distance_g)}")
+    st.write(f"유효한 거리 측정값 개수: {len(valid_distances)}")
+    
     mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
     std_g = np.std([ggg for ggg in distance_g if ggg < 6])
+    st.write(f"계산된 mean_g: {mean_g:.4f}, std_g: {std_g:.4f}")
+    
     x_test = np.array([[mean_g, std_g]])
+    st.write(f"평가할 데이터: {x_test}")
 
     # 기존 학습 데이터 읽기
     series2 = pd.read_csv('x_train.csv', header=None)
+    st.write(f"학습 데이터 크기: {series2.shape}")
     
     # 결측치 처리
     imp = SimpleImputer(missing_values=np.nan, strategy='mean')
@@ -145,20 +162,24 @@ def analyze_frames(camera, length):
     
     # 스케일러 학습 및 변환
     scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler.fit(series)  # 학습 데이터로 스케일러 학습
+    scaler.fit(series)
     
     # 학습 데이터 정규화
     x_train = scaler.transform(series)
     
     # 테스트 데이터도 동일한 스케일러로 정규화
-    x_test = scaler.transform(x_test)
+    x_test_scaled = scaler.transform(x_test)
+    st.write(f"정규화된 평가 데이터: {x_test_scaled}")
     
     # OneClassSVM 모델 학습
     clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
     clf.fit(x_train)
     
     # 예측
-    y_pred_test = clf.predict(x_test)
+    y_pred_test = clf.predict(x_test_scaled)
+    decision_value = clf.decision_function(x_test_scaled)[0]
+    st.write(f"결정 값: {decision_value:.4f}")
+    
     if y_pred_test == 1:
         str3 = 'pass.'
         st.success('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
@@ -166,7 +187,7 @@ def analyze_frames(camera, length):
         str3 = 'failure.'
         st.error('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
     
-    return str3, str(round(clf.decision_function(x_test)[0], 4))
+    return str3, str(round(decision_value, 4))
 
 def process_frame_data(frame_count, contour, area):
     """프레임 데이터 처리 함수"""
