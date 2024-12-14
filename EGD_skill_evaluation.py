@@ -235,8 +235,8 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
             font = ImageFont.load_default()
             st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
     
-    # duration을 '분 초' 형식으로 변환
-    video_length = f"{int(duration // 60)}분 {int(duration % 60)}초"
+    # duration을 'min sec' 형식으로 변환
+    video_length = f"{int(duration // 60)} min {int(duration % 60)} sec"
     
     # str3과 str4를 문자열로 변환하여 텍스트에 반영
     result_text = str3 if isinstance(str3, str) else str(str3)
