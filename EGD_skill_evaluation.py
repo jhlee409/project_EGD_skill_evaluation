@@ -133,27 +133,31 @@ def analyze_frames(camera, length):
     # Calculate mean and std of distances
     mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
     std_g = np.std([ggg for ggg in distance_g if ggg < 6])
-    x_train = np.array([[mean_g, std_g]])
-
-    # 현재 평가 데이터를 x_test로 사용
-    x_test = x_train
+    x_test = np.array([[mean_g, std_g]])
 
     # 기존 학습 데이터 읽기
     series2 = pd.read_csv('x_train.csv', header=None)
+    
+    # 결측치 처리
     imp = SimpleImputer(missing_values=np.nan, strategy='mean')
     imp.fit(series2)
     series = imp.transform(series2)
-
+    
+    # 스케일러 학습 및 변환
     scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler = scaler.fit(series)
-    normalized = scaler.transform(series)
+    scaler.fit(series)  # 학습 데이터로 스케일러 학습
     
-    x_train = normalized[0:-1]
-    x_test = np.reshape(x_test, (1, -1))
+    # 학습 데이터 정규화
+    x_train = scaler.transform(series)
     
+    # 테스트 데이터도 동일한 스케일러로 정규화
+    x_test = scaler.transform(x_test)
+    
+    # OneClassSVM 모델 학습
     clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
     clf.fit(x_train)
     
+    # 예측
     y_pred_test = clf.predict(x_test)
     if y_pred_test == 1:
         str3 = 'pass.'
