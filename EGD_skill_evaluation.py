@@ -238,9 +238,9 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
     # duration을 'min sec' 형식으로 변환
     video_length = f"{int(duration // 60)} min {int(duration % 60)} sec"
     
-    # str3과 str4를 문자열로 변환하여 텍스트에 반영
-    result_text = str3 if isinstance(str3, str) else str(str3)
-    score_text = str4 if isinstance(str4, str) else str(str4)
+    # str3에서 pass/fail만 추출하고 str4에서 점수만 추출
+    result_text = str3[0] if isinstance(str3, tuple) else str3
+    score_text = str4[1] if isinstance(str4, tuple) else str4
     
     # 텍스트 생성
     text = (
