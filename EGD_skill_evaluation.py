@@ -282,6 +282,10 @@ def main():
     if uploaded_files and name_endo:
         os.makedirs(TEMP_DIR, exist_ok=True)
         
+        # 한국 시간으로 현재 날짜 및 시간 설정
+        kst = pytz.timezone('Asia/Seoul')
+        current_date = datetime.now(kst).strftime("%Y%m%d")
+        
         # 파일 분류 및 처리
         avi_files = []
         bmp_files = []
@@ -301,13 +305,10 @@ def main():
         st.divider()
         st.subheader("- 동영상 분석 과정 -")
         
+        # 동영상 분석 결과 변수 초기화
         duration = None
         str3 = None
         str4 = None
-        
-        # 한국 시간으로 현재 시간 설정
-        kst = pytz.timezone('Asia/Seoul')
-        current_date = datetime.now(kst).strftime("%Y%m%d")
         
         for file_path in avi_files:
             result = analyze_video(file_path)
@@ -319,6 +320,7 @@ def main():
             st.divider()
             st.subheader("- 이미지 저장 과정 -")
             
+            # 이미지 생성 및 저장
             temp_result_path, timestamp = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)
             
             # Firebase 업로드
@@ -334,6 +336,7 @@ def main():
         st.success("평가가 완료되었습니다.")
     elif uploaded_files and not name_endo:
         st.error("이름이 입력되지 않았습니다.")
+
 
 
 if __name__ == "__main__":
