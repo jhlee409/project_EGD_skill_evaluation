@@ -213,7 +213,7 @@ def create_result_image(bmp_files, name_endo, current_date, duration, str3):
     kst = pytz.timezone('Asia/Seoul')
     current_date = datetime.now(kst).strftime("%Y%m%d")
     
-    add_text_to_image(draw, len(bmp_files), duration, str3, str4)
+    add_text_to_image(draw, len(bmp_files), duration, str3)
  
     temp_result_path = os.path.join(TEMP_DIR, f'{name_endo}_{current_date}.png') 
     result_image.save(temp_result_path)
