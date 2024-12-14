@@ -191,7 +191,7 @@ def process_frame_data(frame_count, contour, area):
     
     return frame_data
 
-def create_result_image(bmp_files, name_endo, current_date, duration, str3, str4):
+def create_result_image(bmp_files, name_endo, current_date, duration, str3):
     """결과 이미지 생성 함수"""
     result_image = Image.new('RGB', (A4_WIDTH, A4_HEIGHT), 'white')
     draw = ImageDraw.Draw(result_image)
@@ -214,15 +214,12 @@ def create_result_image(bmp_files, name_endo, current_date, duration, str3, str4
     current_date = datetime.now(kst).strftime("%Y%m%d")
     
     add_text_to_image(draw, len(bmp_files), duration, str3, str4)
-    
-    # 타임스탬프 제거
-    # timestamp = datetime.now(kst).strftime("%H%M%S")  # 현재 시간을 기반으로 타임스탬프 생성
-    
-    temp_result_path = os.path.join(TEMP_DIR, f'{name_endo}_{current_date}.png')  # 타임스탬프 제거
+ 
+    temp_result_path = os.path.join(TEMP_DIR, f'{name_endo}_{current_date}.png') 
     result_image.save(temp_result_path)
     return temp_result_path
 
-def add_text_to_image(draw, photo_count, duration, str3, str4):
+def add_text_to_image(draw, photo_count, duration, str3):
     """이미지에 텍스트 추가 함수"""
     try:
         font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
@@ -254,8 +251,6 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
     
     draw.text((PADDING, A4_HEIGHT - text_height - PADDING), text, 
               fill=(0, 0, 0), font=font, align="left")
-
-
 
 def cleanup_temp_files():
     """임시 파일 정리 함수"""
@@ -322,7 +317,7 @@ def main():
             st.subheader("- 이미지 저장 과정 -")
             
             # 이미지 생성 및 저장
-            temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)
+            temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3)
             
             # Firebase 업로드
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
