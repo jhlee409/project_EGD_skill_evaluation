@@ -151,31 +151,30 @@ def analyze_frames(camera, length):
     x_test = np.array([[mean_g, std_g]])
     st.write(f"평가할 데이터: {x_test}")
 
-    # 결과의 일관성을 위해 랜덤 시드 설정
-    np.random.seed(42)
-
-    # 기준 데이터 로드 (x_train.csv가 없으면 생성)
-    if not os.path.exists('x_train.csv'):
-        # 초기 기준 데이터 설정
-        x_train = np.array([
-            [0.2, 0.15],  # 예시 기준값 1
-            [0.3, 0.18],  # 예시 기준값 2
-            [0.25, 0.16]  # 예시 기준값 3
-        ])
-        np.savetxt('x_train.csv', x_train, delimiter=',')
+    # 기존 학습 데이터 읽기
+    series2 = pd.read_csv('x_train.csv', header=None)
+    st.write(f"학습 데이터 크기: {series2.shape}")
     
-    # 기존 훈련 데이터 로드
-    x_train = np.loadtxt('x_train.csv', delimiter=',')
-
-    # 고정된 정규화 범위 사용
+    # 결측치 처리
+    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+    imp.fit(series2)
+    series = imp.transform(series2)
+    
+    # 스케일러 학습 및 변환
     scaler = MinMaxScaler(feature_range=(0, 1))
-    x_train_scaled = scaler.fit_transform(x_train)
+    scaler.fit(series)
+    
+    # 학습 데이터 정규화
+    x_train = scaler.transform(series)
+    
+    # 테스트 데이터도 동일한 스케일러로 정규화
     x_test_scaled = scaler.transform(x_test)
-
-    # SVM 모델 생성 (고정된 파라미터 사용)
+    st.write(f"정규화된 평가 데이터: {x_test_scaled}")
+    
+    # OneClassSVM 모델 학습
     clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
-    clf.fit(x_train_scaled)
-
+    clf.fit(x_train)
+    
     # 예측
     y_pred_test = clf.predict(x_test_scaled)
     decision_value = clf.decision_function(x_test_scaled)[0]
