@@ -281,6 +281,24 @@ def main():
         
         st.divider()
         st.subheader("- 동영상 분석 과정 -")
+        
+        # 변수 초기화
+        duration = None
+        str3 = None
+        str4 = None
+        
+        # 비디오 분석
+        for file_path in avi_files:
+            result = analyze_video(file_path)
+            if result:
+                str3, str4 = result
+                duration = result[1]  # duration 값을 저장
+        
+        # duration 값이 None일 경우 에러 메시지 출력
+        if duration is None:
+            st.error("동영상 분석에 실패했습니다. 올바른 파일을 업로드했는지 확인해주세요.")
+            return
+        
         st.write(duration)
         st.write(str3)
         st.write(str4)
@@ -288,12 +306,6 @@ def main():
         # 한국 시간으로 현재 시간 설정
         kst = pytz.timezone('Asia/Seoul')
         current_date = datetime.now(kst).strftime("%Y%m%d")
-        
-        for file_path in avi_files:
-            result = analyze_video(file_path)
-            if result:
-                str3, str4 = result
-                duration = result[1]  # duration 값을 저장
         
         if has_bmp:
             st.divider()
@@ -313,6 +325,7 @@ def main():
         st.success("평가가 완료되었습니다.")
     elif uploaded_files and not name_endo:
         st.error("이름이 입력되지 않았습니다.")
+
 
 if __name__ == "__main__":
     main()
