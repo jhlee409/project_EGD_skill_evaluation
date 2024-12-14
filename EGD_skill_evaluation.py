@@ -215,12 +215,12 @@ def create_result_image(bmp_files, name_endo, current_date, duration, str3, str4
     
     add_text_to_image(draw, len(bmp_files), duration, str3, str4)
     
-    # 타임스탬프 생성
-    timestamp = datetime.now(kst).strftime("%H%M%S")  # 현재 시간을 기반으로 타임스탬프 생성
+    # 타임스탬프 제거
+    # timestamp = datetime.now(kst).strftime("%H%M%S")  # 현재 시간을 기반으로 타임스탬프 생성
     
-    temp_result_path = os.path.join(TEMP_DIR, f'{name_endo}_{current_date}_{timestamp}.png')
+    temp_result_path = os.path.join(TEMP_DIR, f'{name_endo}_{current_date}.png')  # 타임스탬프 제거
     result_image.save(temp_result_path)
-    return temp_result_path, timestamp
+    return temp_result_path
 
 def add_text_to_image(draw, photo_count, duration, str3, str4):
     """이미지에 텍스트 추가 함수"""
@@ -324,13 +324,13 @@ def main():
             st.subheader("- 이미지 저장 과정 -")
             
             # 이미지 생성 및 저장
-            temp_result_path, timestamp = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)
+            temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)
             
             # Firebase 업로드
-            result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}_{timestamp}.png')
+            result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             result_blob.upload_from_filename(temp_result_path)
             
-            st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}_{timestamp}.png")
+            st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
             st.image(temp_result_path, use_container_width=True)
         
         # 임시 파일 정리
