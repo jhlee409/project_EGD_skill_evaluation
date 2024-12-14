@@ -131,15 +131,38 @@ def analyze_frames(camera, length):
                 distance_g.append(0)
     
     # Calculate mean and std of distances
-    valid_distances = [d for d in distance_g if d < 6]
-    if valid_distances:
-        mean_g = np.mean(valid_distances)
-        std_g = np.std(valid_distances)
-    else:
-        mean_g = 0
-        std_g = 0
+    mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
+    std_g = np.std([ggg for ggg in distance_g if ggg < 6])
+    x_train = np.array([[mean_g, std_g]])
+
+    # 현재 평가 데이터를 x_test로 사용
+    x_test = x_train
+
+    # 기존 학습 데이터 읽기
+    series2 = pd.read_csv('x_train.csv', header=None)
+    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+    imp.fit(series2)
+    series = imp.transform(series2)
+
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler = scaler.fit(series)
+    normalized = scaler.transform(series)
     
-    return np.array([[mean_g, std_g]])
+    x_train = normalized[0:-1]
+    x_test = np.reshape(x_test, (1, -1))
+    
+    clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
+    clf.fit(x_train)
+    
+    y_pred_test = clf.predict(x_test)
+    if y_pred_test == 1:
+        str3 = 'pass.'
+        st.success('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
+    else:
+        str3 = 'failure.'
+        st.error('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
+    
+    return str3, str(round(clf.decision_function(x_test)[0], 4))
 
 def process_frame_data(frame_count, contour, area):
     """프레임 데이터 처리 함수"""
@@ -207,40 +230,6 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
     draw.text((PADDING, A4_HEIGHT - text_height - PADDING), text, 
               fill=(0, 0, 0), font=font, align="left")
 
-def process_analysis_results(points_data):
-    """분석 결과 처리 함수"""
-    # Save to CSV
-    with open('x_train.csv', 'a', newline='') as w:
-        writer = csv.writer(w)
-        writer.writerow(points_data[0])  # Write as a single row
-    
-    # Load and process data
-    series2 = pd.read_csv('x_train.csv', header=None)
-    imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-    imp.fit(series2)
-    series = imp.transform(series2)
-    
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler = scaler.fit(series)
-    normalized = scaler.transform(series)
-    
-    x_train = normalized[0:-1]
-    x_test = normalized[-1]
-    x_test = np.reshape(x_test, (1, -1))
-    
-    clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
-    clf.fit(x_train)
-    
-    y_pred_test = clf.predict(x_test)
-    if y_pred_test == 1:
-        str3 = 'pass.'
-        st.success('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
-    else:
-        str3 = 'failure.'
-        st.error('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
-    
-    return str3, str(round(clf.decision_function(x_test)[0], 4))
-
 def cleanup_temp_files():
     """임시 파일 정리 함수"""
     for file_path in os.listdir(TEMP_DIR):
@@ -291,15 +280,13 @@ def main():
         current_date = datetime.now(kst).strftime("%Y%m%d")
         
         for file_path in avi_files:
-            points_data, duration = analyze_video(file_path)
-            if points_data is not None:
-                str3, str4 = process_analysis_results(points_data)
+            str3, str4 = analyze_video(file_path)
         
         if has_bmp:
             st.divider()
             st.subheader("- 이미지 저장 과정 -")
             temp_result_path = create_result_image(bmp_files, name_endo, current_date, 
-                                                 duration, str3, str4)
+                                                 0, str3, str4)
             
             # Firebase Storage에 업로드 (파일명에 시간 포함)
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
