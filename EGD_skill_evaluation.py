@@ -331,7 +331,7 @@ def main():
             result_blob.upload_from_filename(temp_result_path)
             
             st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}_{timestamp}.png")
-            st.image(temp_result_path, use_container_width=True, key=timestamp)
+            st.image(temp_result_path, use_container_width=True)
         
         # 임시 파일 정리
         cleanup_temp_files()
