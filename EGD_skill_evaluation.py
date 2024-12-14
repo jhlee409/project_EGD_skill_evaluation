@@ -285,7 +285,7 @@ def main():
         st.write(str3)
         st.write(str4)
 
-        # 한국 시간대로 현재 시간 설정
+        # 한국 시간으로 현재 시간 설정
         kst = pytz.timezone('Asia/Seoul')
         current_date = datetime.now(kst).strftime("%Y%m%d")
         
@@ -298,7 +298,7 @@ def main():
         if has_bmp:
             st.divider()
             st.subheader("- 이미지 저장 과정 -")
-            temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)                                      duration, str3, str4)
+            temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)
             
             # Firebase Storage에 업로드 (파일명에 시간 포함)
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
