@@ -50,7 +50,7 @@ def process_video_frame(frame):
     """비디오 프레임 처리 함수"""
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     green = cv2.inRange(hsv, GREEN_LOWER, GREEN_UPPER)
-    contours, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)l
     
     if contours:
         g = max(contours, key=cv2.contourArea)
@@ -287,13 +287,15 @@ def main():
         current_date = datetime.now(kst).strftime("%Y%m%d")
         
         for file_path in avi_files:
-            str3, str4 = analyze_video(file_path)
+            result = analyze_video(file_path)
+            if result:
+                str3, str4 = result
+                duration = result[1]  # duration 값을 저장
         
         if has_bmp:
             st.divider()
             st.subheader("- 이미지 저장 과정 -")
-            temp_result_path = create_result_image(bmp_files, name_endo, current_date, 
-                                                 0, str3, str4)
+            temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3, str4)                                      duration, str3, str4)
             
             # Firebase Storage에 업로드 (파일명에 시간 포함)
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
