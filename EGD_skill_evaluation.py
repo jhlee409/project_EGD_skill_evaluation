@@ -72,8 +72,6 @@ def analyze_video(file_path):
     frame_rate = camera.get(cv2.CAP_PROP_FPS)
     duration = length / frame_rate
     
-    st.write(f'동영상 길이: {int(duration // 60)} 분  {int(duration % 60)} 초')
-    
     if duration < MIN_VIDEO_DURATION or duration > MAX_VIDEO_DURATION:
         st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분 30초에서 5분 30초 사이의 범위를 벗어납니다.")
         camera.release()
@@ -86,16 +84,10 @@ def analyze_video(file_path):
 def analyze_frames(camera, length):
     """프레임별 분석 함수"""
     pts = deque()
-    angle_g = []
-    distance_g = []
-    
-    st.write("프레임 분석 시작")
-    progress_bar = st.progress(0)
+    angle_g = np.array([])
+    distance_g = np.array([])
     
     for frame_count in range(length):
-        progress = (frame_count + 1) / length
-        progress_bar.progress(progress)
-        
         ret, frame = camera.read()
         if not ret:
             break
@@ -129,34 +121,24 @@ def analyze_frames(camera, length):
             if (prev_point[1] != 3 and curr_point[1] != 3) and (prev_point[1] == 2 and curr_point[1] == 2):
                 a = curr_point[2] - prev_point[2]  # x difference
                 b = curr_point[3] - prev_point[3]  # y difference
-                angle_g.append(degrees(atan2(a, b)))
+                angle_g = np.append(angle_g, degrees(atan2(a, b)))
                 rr = prev_point[4]  # radius
                 if rr != 0:
                     delta_g = (np.sqrt((a * a) + (b * b))) / rr
-                    distance_g.append(delta_g)
-                    if frame_count % 30 == 0:  # 30프레임마다 중간값 출력
-                        st.write(f"Frame {frame_count}: delta_g = {delta_g:.4f}, rr = {rr}")
-            else:
-                distance_g.append(0)
+                    distance_g = np.append(distance_g, delta_g)
+                else:
+                    distance_g = np.append(distance_g, 0)
     
-    # 디버깅을 위한 중간값 출력
-    valid_distances = [d for d in distance_g if d < 6]
-    st.write(f"총 거리 측정값 개수: {len(distance_g)}")
-    st.write(f"유효한 거리 측정값 개수: {len(valid_distances)}")
-    
+    # 최종 결과 계산
     mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
     std_g = np.std([ggg for ggg in distance_g if ggg < 6])
-    st.write(f"계산된 mean_g: {mean_g:.4f}, std_g: {std_g:.4f}")
-    
     x_test = np.array([[mean_g, std_g]])
-    st.write(f"평가할 데이터: {x_test}")
 
     # 결과의 일관성을 위해 랜덤 시드 설정
     np.random.seed(42)
 
-    # 기준 데이터 로드 (x_train.csv가 없으면 생성)
+    # 기존 훈련 데이터 로드
     if not os.path.exists('x_train.csv'):
-        # 초기 기준 데이터 설정
         x_train = np.array([
             [0.2, 0.15],  # 예시 기준값 1
             [0.3, 0.18],  # 예시 기준값 2
@@ -164,31 +146,30 @@ def analyze_frames(camera, length):
         ])
         np.savetxt('x_train.csv', x_train, delimiter=',')
     
-    # 기존 훈련 데이터 로드
     x_train = np.loadtxt('x_train.csv', delimiter=',')
 
-    # 고정된 정규화 범위 사용
+    # 데이터 정규화 및 모델 예측
     scaler = MinMaxScaler(feature_range=(0, 1))
     x_train_scaled = scaler.fit_transform(x_train)
     x_test_scaled = scaler.transform(x_test)
 
-    # SVM 모델 생성 (고정된 파라미터 사용)
+    # 모델 학습 및 예측
     clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
     clf.fit(x_train_scaled)
-
-    # 예측
     y_pred_test = clf.predict(x_test_scaled)
-    decision_value = clf.decision_function(x_test_scaled)[0]
-    st.write(f"결정 값: {decision_value:.4f}")
     
+    # 결과 반환
+    str3 = 'pass.' if y_pred_test == 1 else 'failure.'
+    str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
+    
+    # 최종 결과만 출력
     if y_pred_test == 1:
-        str3 = 'pass.'
-        st.success('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
+        st.write('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
     else:
-        str3 = 'failure.'
-        st.error('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
+        st.write('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
+    st.write(f"판단 점수: {str4}")
     
-    return str3, str(round(decision_value, 4))
+    return str3, str4
 
 def process_frame_data(frame_count, contour, area):
     """프레임 데이터 처리 함수"""
