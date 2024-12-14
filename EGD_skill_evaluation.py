@@ -73,7 +73,7 @@ def analyze_video(file_path):
     duration = length / frame_rate
     
     if duration < MIN_VIDEO_DURATION or duration > MAX_VIDEO_DURATION:
-        st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분 30초에서 5분 30초 사이의 범위를 벗어납니다.")
+        st.error(f"동영상 길이가 {int(duration // 60)} min {int(duration % 60)} sec로 2분 30초에서 5분 30초 사이의 범위를 벗어납니다.")
         camera.release()
         return None
     
@@ -228,14 +228,22 @@ def add_text_to_image(draw, photo_count, duration, str3, str4):
             font = ImageFont.load_default()
             st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
     
+    # 동영상 길이와 분석 결과 텍스트 작성
     video_length = f"{int(duration // 60)}분 {int(duration % 60)}초"
-    text = f"photo number: {photo_count}\nduration: {video_length}\nresult: {str3}\nscore: {str4}"
+    text = (
+        f"photo number: {photo_count}\n"
+        f"duration: {video_length}\n"
+        f"result: {str3}\n"
+        f"score: {str4}"
+    )
     
+    # 텍스트 크기 계산 및 위치 지정
     text_bbox = draw.textbbox((0, 0), text, font=font)
     text_height = text_bbox[3] - text_bbox[1]
     
     draw.text((PADDING, A4_HEIGHT - text_height - PADDING), text, 
               fill=(0, 0, 0), font=font, align="left")
+
 
 def cleanup_temp_files():
     """임시 파일 정리 함수"""
