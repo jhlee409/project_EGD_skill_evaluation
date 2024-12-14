@@ -93,6 +93,7 @@ def analyze_video(file_path):
     
     length = int(camera.get(cv2.CAP_PROP_FRAME_COUNT))
     frame_rate = camera.get(cv2.CAP_PROP_FPS)
+    frame_time = 1.0 / frame_rate  # 프레임 간 시간 간격
     duration = length / frame_rate
     
     if duration < MIN_VIDEO_DURATION or duration > MAX_VIDEO_DURATION:
@@ -100,96 +101,180 @@ def analyze_video(file_path):
         camera.release()
         return None
     
-    points_data = analyze_frames(camera, length)
+    points_data = analyze_frames(camera, length, frame_time)
     camera.release()
     return points_data, duration
 
-def analyze_frames(camera, length):
+def analyze_frames(camera, length, frame_time):
     """프레임별 분석 함수"""
     np.seterr(all='raise')
     np.set_printoptions(precision=10)
     
-    frames = []
-    for _ in range(length):
+    pts = deque(maxlen=32)  # 위치 데이터를 저장할 큐
+    angle_g = np.array([])
+    distance_g = np.array([])
+    prev_center = None
+    prev_time = 0
+    
+    for frame_count in range(length):
         ret, frame = camera.read()
         if not ret:
             break
-        frames.append(frame)
-    
-    pts = deque()
-    angle_g = np.array([])
-    distance_g = np.array([])
-    
-    for frame_count, frame in enumerate(frames):
-        g, ga = process_video_frame(frame)
-        
-        if ga > 500:
-            u = np.array(g)
-        else:
-            u = np.array([[[0, 0]], [[1, 0]], [[2, 0]], [[2, 1]], [[2, 2]], [[1, 2]], [[0, 2]], [[0, 1]]])
-        
-        M = cv2.moments(u)
-        px = int(M["m10"] / M["m00"]) if M["m00"] != 0 else 0
-        py = int(M["m01"] / M["m00"]) if M["m00"] != 0 else 0
-        
-        ((cx, cy), radius) = cv2.minEnclosingCircle(u)
-        
-        pts.append([
-            frame_count + 1,
-            2 if ga > 500 else 3,
-            abs(px),
-            abs(py),
-            int(radius)
-        ])
-        
-        if len(pts) > 1:
-            prev_point = pts[-2]
-            curr_point = pts[-1]
             
-            if (prev_point[1] != 3 and curr_point[1] != 3) and (prev_point[1] == 2 and curr_point[1] == 2):
-                a = curr_point[2] - prev_point[2]  # x difference
-                b = curr_point[3] - prev_point[3]  # y difference
-                angle_g = np.append(angle_g, degrees(atan2(a, b)))
-                rr = prev_point[4]  # radius
-                if rr != 0:
-                    delta_g = (np.sqrt((a * a) + (b * b))) / rr
-                    distance_g = np.append(distance_g, delta_g)
-                else:
-                    distance_g = np.append(distance_g, 0)
+        # HSV 색공간으로 변환하여 녹색 버튼 검출 향상
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        lower_green = np.array([40, 50, 50])
+        upper_green = np.array([80, 255, 255])
+        mask = cv2.inRange(hsv, lower_green, upper_green)
+        
+        # 노이즈 제거
+        mask = cv2.erode(mask, None, iterations=2)
+        mask = cv2.dilate(mask, None, iterations=2)
+        
+        # 윤곽선 검출
+        contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        if len(contours) > 0:
+            # 가장 큰 윤곽선 선택
+            c = max(contours, key=cv2.contourArea)
+            area = cv2.contourArea(c)
+            
+            if area > 500:  # 최소 크기 조건
+                # 중심점 계산
+                M = cv2.moments(c)
+                if M["m00"] != 0:
+                    center_x = int(M["m10"] / M["m00"])
+                    center_y = int(M["m01"] / M["m00"])
+                    current_center = np.array([center_x, center_y])
+                    
+                    # 속도 계산
+                    current_time = frame_count * frame_time
+                    if prev_center is not None:
+                        # 픽셀 단위 거리를 실제 거리로 변환 (예: 1픽셀 = 1mm로 가정)
+                        distance = np.linalg.norm(current_center - prev_center)
+                        time_diff = current_time - prev_time
+                        if time_diff > 0:
+                            velocity = distance / time_diff
+                            # 비정상적으로 큰 속도값 필터링 (노이즈 제거)
+                            if velocity < 1000:  # 적절한 임계값 설정
+                                distance_g = np.append(distance_g, velocity)
+                    
+                    prev_center = current_center
+                    prev_time = current_time
+                    pts.appendleft(current_center)
+        
+        # 각도 계산
+        if len(pts) >= 3:
+            for i in range(1, len(pts) - 1):
+                if pts[i - 1] is not None and pts[i] is not None and pts[i + 1] is not None:
+                    angle = calculate_angle(pts[i-1], pts[i], pts[i+1])
+                    if not np.isnan(angle):
+                        angle_g = np.append(angle_g, angle)
     
-    # 최종 결과 계산 (높은 정밀도)
-    mean_g = np.float64(np.mean([ggg for ggg in distance_g if ggg < 6]))
-    std_g = np.float64(np.std([ggg for ggg in distance_g if ggg < 6]))
-    x_test = np.array([[mean_g, std_g]])
-
-    # 고정된 훈련 데이터 사용
-    x_train = FIXED_TRAIN_DATA
-
-    # 데이터 정규화 및 모델 예측 (고정된 범위 사용)
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler.fit(np.array([[0, 0], [1, 1]]))  # 고정된 범위로 스케일러 피팅
-    x_train_scaled = scaler.transform(x_train)
-    x_test_scaled = scaler.transform(x_test)
-
-    # 모델 학습 및 예측
-    clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
-    clf.fit(x_train_scaled)
+    # 통계 계산
+    mean_velocity = np.mean(distance_g) if len(distance_g) > 0 else 0
+    std_velocity = np.std(distance_g) if len(distance_g) > 0 else 0
+    mean_angle = np.mean(angle_g) if len(angle_g) > 0 else 0
+    std_angle = np.std(angle_g) if len(angle_g) > 0 else 0
     
-    # 판단 점수 계산 (여유 범위 추가)
-    decision_score = clf.decision_function(x_test_scaled)[0]
-    margin = 0.05  # 5%의 여유 범위
+    # 판단 로직
+    # 1. 속도 기반 평가
+    velocity_score = evaluate_velocity(mean_velocity, std_velocity)
+    # 2. 각도 기반 평가
+    angle_score = evaluate_angle(mean_angle, std_angle)
+    # 3. 종합 평가 (속도:각도 = 65:35로 조정)
+    final_score = 0.65 * velocity_score + 0.35 * angle_score
     
-    if decision_score > -margin:  # 여유 범위를 고려한 판단
+    # 판단 결과 생성
+    decision_score = final_score
+    margin = 0.1  # 여유 범위를 10%로 확대
+    
+    # 합격 기준을 65%로 조정 (더 현실적인 기준)
+    if decision_score > 0.65:
         str3 = 'pass'
         st.write('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
+        if decision_score > 0.85:  # 우수 수행 기준 추가
+            st.write('특히 우수한 수행을 보여주었습니다!')
     else:
         str3 = 'failure'
         st.write('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
+        if decision_score < 0.4:  # 매우 미흡한 경우 추가 피드백
+            st.write('기본적인 조작 기술의 향상이 필요합니다.')
     
     str4 = str(round(decision_score, 4))
-    st.write(f"판단 점수: {str4} (여유 범위: ±{margin})")
+    st.write(f"판단 점수: {str4} (합격 기준: 0.65)")
+    
+    # 세부 평가 결과 표시 (백분율로 변환하여 표시)
+    st.write(f"속도 평가 점수: {round(velocity_score * 100, 1)}%")
+    st.write(f"각도 평가 점수: {round(angle_score * 100, 1)}%")
+    
+    # 개선이 필요한 영역 피드백 제공
+    if velocity_score < 0.6:
+        st.write("※ 내시경 조작 속도 조절이 필요합니다.")
+    if angle_score < 0.6:
+        st.write("※ 내시경 회전 동작의 안정성 향상이 필요합니다.")
     
     return str3, str4
+
+def evaluate_velocity(mean_velocity, std_velocity):
+    """속도 기반 평가 함수"""
+    # 속도 범위 설정 (내시경 움직임 특성 반영)
+    optimal_mean_velocity = 100  # 적정 평균 속도 (너무 빠르지 않게 조정)
+    optimal_std_velocity = 30    # 안정적인 움직임을 위한 표준편차
+    
+    # 속도 점수 계산 방식 개선
+    # 평균 속도가 너무 빠르거나 느린 경우 감점
+    if mean_velocity < optimal_mean_velocity:
+        mean_score = mean_velocity / optimal_mean_velocity
+    else:
+        mean_score = max(0, 1.0 - (mean_velocity - optimal_mean_velocity) / (optimal_mean_velocity * 2))
+    
+    # 표준편차 점수 계산 (안정성 평가)
+    # 표준편차가 작을수록 더 안정적인 움직임
+    std_score = max(0, 1.0 - (std_velocity / optimal_std_velocity))
+    
+    # 최종 속도 점수 계산 (평균과 표준편차를 8:2 비율로 조정)
+    # 평균 속도의 중요도를 높임
+    return 0.8 * mean_score + 0.2 * std_score
+
+def evaluate_angle(mean_angle, std_angle):
+    """각도 기반 평가 함수"""
+    # 각도 범위 설정 (내시경 회전 특성 반영)
+    optimal_mean_angle = 30    # 부드러운 회전을 위한 평균 각도
+    optimal_std_angle = 20     # 다양한 각도 변화 허용
+    max_allowed_angle = 90     # 최대 허용 각도
+    
+    # 평균 각도 점수 계산
+    # 각도가 너무 크거나 작은 경우 감점
+    if mean_angle <= optimal_mean_angle:
+        mean_score = mean_angle / optimal_mean_angle
+    else:
+        mean_score = max(0, 1.0 - (mean_angle - optimal_mean_angle) / (max_allowed_angle - optimal_mean_angle))
+    
+    # 표준편차 점수 계산
+    # 적절한 범위 내의 각도 변화는 허용
+    if std_angle <= optimal_std_angle:
+        std_score = 1.0
+    else:
+        std_score = max(0, 1.0 - (std_angle - optimal_std_angle) / optimal_std_angle)
+    
+    # 최종 각도 점수 계산 (평균과 표준편차를 7:3 비율로 조정)
+    return 0.7 * mean_score + 0.3 * std_score
+
+def calculate_angle(p1, p2, p3):
+    """세 점 사이의 각도 계산"""
+    if p1 is None or p2 is None or p3 is None:
+        return np.nan
+    
+    v1 = p1 - p2
+    v2 = p3 - p2
+    
+    cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+    # 수치 안정성을 위한 클리핑
+    cos_angle = np.clip(cos_angle, -1.0, 1.0)
+    angle = np.arccos(cos_angle)
+    
+    return np.degrees(angle)
 
 def process_frame_data(frame_count, contour, area):
     """프레임 데이터 처리 함수"""

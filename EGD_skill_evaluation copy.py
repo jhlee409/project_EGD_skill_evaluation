@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import cv2
 import numpy as np
+import sys
 from collections import deque
 import csv
 import pandas as pd
@@ -15,6 +16,11 @@ import pytz
 import firebase_admin
 from firebase_admin import credentials, storage
 
+# 버전 정보 출력
+st.write(f"Python 버전: {sys.version}")
+st.write(f"OpenCV 버전: {cv2.__version__}")
+st.write(f"NumPy 버전: {np.__version__}")
+
 # Constants
 TEMP_DIR = "temp_files"
 GREEN_LOWER = np.array([35, 80, 50], np.uint8)
@@ -26,6 +32,13 @@ A4_HEIGHT = 3508
 IMAGES_PER_ROW = 8
 PADDING = 20
 FONT_SIZE = 50
+
+# 고정된 훈련 데이터
+FIXED_TRAIN_DATA = np.array([
+    [0.2, 0.15],  # 예시 기준값 1
+    [0.3, 0.18],  # 예시 기준값 2
+    [0.25, 0.16]  # 예시 기준값 3
+])
 
 def initialize_firebase():
     """Firebase 초기화 함수"""
@@ -48,6 +61,12 @@ def initialize_firebase():
 
 def process_video_frame(frame):
     """비디오 프레임 처리 함수"""
+    # 프레임 크기 통일
+    frame = cv2.resize(frame, (640, 480))
+    
+    # 노이즈 제거
+    frame = cv2.GaussianBlur(frame, (5, 5), 0)
+    
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     green = cv2.inRange(hsv, GREEN_LOWER, GREEN_UPPER)
     contours, _ = cv2.findContours(green, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -64,12 +83,17 @@ def process_video_frame(frame):
 def analyze_video(file_path):
     """비디오 분석 함수"""
     camera = cv2.VideoCapture(file_path)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    camera.set(cv2.CAP_PROP_FPS, 30)  # 고정된 프레임 레이트
+    
     if not camera.isOpened():
         st.error(f"동영상 파일을 열 수 없습니다: {file_path}")
         return None
     
     length = int(camera.get(cv2.CAP_PROP_FRAME_COUNT))
     frame_rate = camera.get(cv2.CAP_PROP_FPS)
+    frame_time = 1.0 / frame_rate  # 프레임 간 시간 간격
     duration = length / frame_rate
     
     if duration < MIN_VIDEO_DURATION or duration > MAX_VIDEO_DURATION:
@@ -77,99 +101,180 @@ def analyze_video(file_path):
         camera.release()
         return None
     
-    points_data = analyze_frames(camera, length)
+    points_data = analyze_frames(camera, length, frame_time)
     camera.release()
     return points_data, duration
 
-def analyze_frames(camera, length):
+def analyze_frames(camera, length, frame_time):
     """프레임별 분석 함수"""
-    pts = deque()
+    np.seterr(all='raise')
+    np.set_printoptions(precision=10)
+    
+    pts = deque(maxlen=32)  # 위치 데이터를 저장할 큐
     angle_g = np.array([])
     distance_g = np.array([])
+    prev_center = None
+    prev_time = 0
     
     for frame_count in range(length):
         ret, frame = camera.read()
         if not ret:
             break
             
-        g, ga = process_video_frame(frame)
+        # HSV 색공간으로 변환하여 녹색 버튼 검출 향상
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        lower_green = np.array([40, 50, 50])
+        upper_green = np.array([80, 255, 255])
+        mask = cv2.inRange(hsv, lower_green, upper_green)
         
-        if ga > 500:
-            u = np.array(g)
-        else:
-            u = np.array([[[0, 0]], [[1, 0]], [[2, 0]], [[2, 1]], [[2, 2]], [[1, 2]], [[0, 2]], [[0, 1]]])
+        # 노이즈 제거
+        mask = cv2.erode(mask, None, iterations=2)
+        mask = cv2.dilate(mask, None, iterations=2)
         
-        M = cv2.moments(u)
-        px = int(M["m10"] / M["m00"]) if M["m00"] != 0 else 0
-        py = int(M["m01"] / M["m00"]) if M["m00"] != 0 else 0
+        # 윤곽선 검출
+        contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
-        ((cx, cy), radius) = cv2.minEnclosingCircle(u)
-        
-        pts.append([
-            frame_count + 1,
-            2 if ga > 500 else 3,
-            abs(px),
-            abs(py),
-            int(radius)
-        ])
-        
-        # Calculate angles and distances
-        if len(pts) > 1:
-            prev_point = pts[-2]
-            curr_point = pts[-1]
+        if len(contours) > 0:
+            # 가장 큰 윤곽선 선택
+            c = max(contours, key=cv2.contourArea)
+            area = cv2.contourArea(c)
             
-            if (prev_point[1] != 3 and curr_point[1] != 3) and (prev_point[1] == 2 and curr_point[1] == 2):
-                a = curr_point[2] - prev_point[2]  # x difference
-                b = curr_point[3] - prev_point[3]  # y difference
-                angle_g = np.append(angle_g, degrees(atan2(a, b)))
-                rr = prev_point[4]  # radius
-                if rr != 0:
-                    delta_g = (np.sqrt((a * a) + (b * b))) / rr
-                    distance_g = np.append(distance_g, delta_g)
-                else:
-                    distance_g = np.append(distance_g, 0)
+            if area > 500:  # 최소 크기 조건
+                # 중심점 계산
+                M = cv2.moments(c)
+                if M["m00"] != 0:
+                    center_x = int(M["m10"] / M["m00"])
+                    center_y = int(M["m01"] / M["m00"])
+                    current_center = np.array([center_x, center_y])
+                    
+                    # 속도 계산
+                    current_time = frame_count * frame_time
+                    if prev_center is not None:
+                        # 픽셀 단위 거리를 실제 거리로 변환 (예: 1픽셀 = 1mm로 가정)
+                        distance = np.linalg.norm(current_center - prev_center)
+                        time_diff = current_time - prev_time
+                        if time_diff > 0:
+                            velocity = distance / time_diff
+                            # 비정상적으로 큰 속도값 필터링 (노이즈 제거)
+                            if velocity < 1000:  # 적절한 임계값 설정
+                                distance_g = np.append(distance_g, velocity)
+                    
+                    prev_center = current_center
+                    prev_time = current_time
+                    pts.appendleft(current_center)
+        
+        # 각도 계산
+        if len(pts) >= 3:
+            for i in range(1, len(pts) - 1):
+                if pts[i - 1] is not None and pts[i] is not None and pts[i + 1] is not None:
+                    angle = calculate_angle(pts[i-1], pts[i], pts[i+1])
+                    if not np.isnan(angle):
+                        angle_g = np.append(angle_g, angle)
     
-    # 최종 결과 계산
-    mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
-    std_g = np.std([ggg for ggg in distance_g if ggg < 6])
-    x_test = np.array([[mean_g, std_g]])
-
-    # 결과의 일관성을 위해 랜덤 시드 설정
-    np.random.seed(42)
-
-    # 기존 훈련 데이터 로드
-    if not os.path.exists('x_train.csv'):
-        x_train = np.array([
-            [0.2, 0.15],  # 예시 기준값 1
-            [0.3, 0.18],  # 예시 기준값 2
-            [0.25, 0.16]  # 예시 기준값 3
-        ])
-        np.savetxt('x_train.csv', x_train, delimiter=',')
+    # 통계 계산
+    mean_velocity = np.mean(distance_g) if len(distance_g) > 0 else 0
+    std_velocity = np.std(distance_g) if len(distance_g) > 0 else 0
+    mean_angle = np.mean(angle_g) if len(angle_g) > 0 else 0
+    std_angle = np.std(angle_g) if len(angle_g) > 0 else 0
     
-    x_train = np.loadtxt('x_train.csv', delimiter=',')
-
-    # 데이터 정규화 및 모델 예측
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    x_train_scaled = scaler.fit_transform(x_train)
-    x_test_scaled = scaler.transform(x_test)
-
-    # 모델 학습 및 예측
-    clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
-    clf.fit(x_train_scaled)
-    y_pred_test = clf.predict(x_test_scaled)
+    # 판단 로직
+    # 1. 속도 기반 평가
+    velocity_score = evaluate_velocity(mean_velocity, std_velocity)
+    # 2. 각도 기반 평가
+    angle_score = evaluate_angle(mean_angle, std_angle)
+    # 3. 종합 평가 (속도:각도 = 65:35로 조정)
+    final_score = 0.65 * velocity_score + 0.35 * angle_score
     
-    # 결과 반환
-    str3 = 'pass' if y_pred_test == 1 else 'failure'
-    str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
+    # 판단 결과 생성
+    decision_score = final_score
+    margin = 0.1  # 여유 범위를 10%로 확대
     
-    # 최종 결과만 출력
-    if y_pred_test == 1:
+    # 합격 기준을 65%로 조정 (더 현실적인 기준)
+    if decision_score > 0.65:
+        str3 = 'pass'
         st.write('EGD 수행이 적절하게 진행되어 검사 과정 평가에서는 합격입니다.')
+        if decision_score > 0.85:  # 우수 수행 기준 추가
+            st.write('특히 우수한 수행을 보여주었습니다!')
     else:
+        str3 = 'failure'
         st.write('EGD 수행이 적절하게 진행되지 못했습니다. 검사 과정 평가에서 불합격입니다.')
-    st.write(f"판단 점수: {str4}")
+        if decision_score < 0.4:  # 매우 미흡한 경우 추가 피드백
+            st.write('기본적인 조작 기술의 향상이 필요합니다.')
+    
+    str4 = str(round(decision_score, 4))
+    st.write(f"판단 점수: {str4} (합격 기준: 0.65)")
+    
+    # 세부 평가 결과 표시 (백분율로 변환하여 표시)
+    st.write(f"속도 평가 점수: {round(velocity_score * 100, 1)}%")
+    st.write(f"각도 평가 점수: {round(angle_score * 100, 1)}%")
+    
+    # 개선이 필요한 영역 피드백 제공
+    if velocity_score < 0.6:
+        st.write("※ 내시경 조작 속도 조절이 필요합니다.")
+    if angle_score < 0.6:
+        st.write("※ 내시경 회전 동작의 안정성 향상이 필요합니다.")
     
     return str3, str4
+
+def evaluate_velocity(mean_velocity, std_velocity):
+    """속도 기반 평가 함수"""
+    # 속도 범위 설정 (내시경 움직임 특성 반영)
+    optimal_mean_velocity = 100  # 적정 평균 속도 (너무 빠르지 않게 조정)
+    optimal_std_velocity = 30    # 안정적인 움직임을 위한 표준편차
+    
+    # 속도 점수 계산 방식 개선
+    # 평균 속도가 너무 빠르거나 느린 경우 감점
+    if mean_velocity < optimal_mean_velocity:
+        mean_score = mean_velocity / optimal_mean_velocity
+    else:
+        mean_score = max(0, 1.0 - (mean_velocity - optimal_mean_velocity) / (optimal_mean_velocity * 2))
+    
+    # 표준편차 점수 계산 (안정성 평가)
+    # 표준편차가 작을수록 더 안정적인 움직임
+    std_score = max(0, 1.0 - (std_velocity / optimal_std_velocity))
+    
+    # 최종 속도 점수 계산 (평균과 표준편차를 8:2 비율로 조정)
+    # 평균 속도의 중요도를 높임
+    return 0.8 * mean_score + 0.2 * std_score
+
+def evaluate_angle(mean_angle, std_angle):
+    """각도 기반 평가 함수"""
+    # 각도 범위 설정 (내시경 회전 특성 반영)
+    optimal_mean_angle = 30    # 부드러운 회전을 위한 평균 각도
+    optimal_std_angle = 20     # 다양한 각도 변화 허용
+    max_allowed_angle = 90     # 최대 허용 각도
+    
+    # 평균 각도 점수 계산
+    # 각도가 너무 크거나 작은 경우 감점
+    if mean_angle <= optimal_mean_angle:
+        mean_score = mean_angle / optimal_mean_angle
+    else:
+        mean_score = max(0, 1.0 - (mean_angle - optimal_mean_angle) / (max_allowed_angle - optimal_mean_angle))
+    
+    # 표준편차 점수 계산
+    # 적절한 범위 내의 각도 변화는 허용
+    if std_angle <= optimal_std_angle:
+        std_score = 1.0
+    else:
+        std_score = max(0, 1.0 - (std_angle - optimal_std_angle) / optimal_std_angle)
+    
+    # 최종 각도 점수 계산 (평균과 표준편차를 7:3 비율로 조정)
+    return 0.7 * mean_score + 0.3 * std_score
+
+def calculate_angle(p1, p2, p3):
+    """세 점 사이의 각도 계산"""
+    if p1 is None or p2 is None or p3 is None:
+        return np.nan
+    
+    v1 = p1 - p2
+    v2 = p3 - p2
+    
+    cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+    # 수치 안정성을 위한 클리핑
+    cos_angle = np.clip(cos_angle, -1.0, 1.0)
+    angle = np.arccos(cos_angle)
+    
+    return np.degrees(angle)
 
 def process_frame_data(frame_count, contour, area):
     """프레임 데이터 처리 함수"""
@@ -209,7 +314,6 @@ def create_result_image(bmp_files, name_endo, current_date, duration, str3):
             x = PADDING
             y += single_width + PADDING
     
-    # 파일 이름에 타임스탬프 추가
     kst = pytz.timezone('Asia/Seoul')
     current_date = datetime.now(kst).strftime("%Y%m%d")
     
@@ -232,20 +336,16 @@ def add_text_to_image(draw, photo_count, duration, str3):
             font = ImageFont.load_default()
             st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
     
-    # duration을 'min sec' 형식으로 변환
     video_length = f"{int(duration // 60)} min {int(duration % 60)} sec"
     
-    # str3에서 마침표 제거
     result_text = str3.rstrip('.') if isinstance(str3, str) else str3
     
-    # 텍스트 생성
     text = (
         f"photo number: {photo_count}\n"
         f"duration: {video_length}\n"
         f"result: {result_text}"
     )
     
-    # 텍스트 위치 및 크기 계산
     text_bbox = draw.textbbox((0, 0), text, font=font)
     text_height = text_bbox[3] - text_bbox[1]
     
@@ -278,11 +378,9 @@ def main():
     if uploaded_files and name_endo:
         os.makedirs(TEMP_DIR, exist_ok=True)
         
-        # 한국 시간으로 현재 날짜 및 시간 설정
         kst = pytz.timezone('Asia/Seoul')
         current_date = datetime.now(kst).strftime("%Y%m%d")
         
-        # 파일 분류 및 처리
         avi_files = []
         bmp_files = []
         has_bmp = False
@@ -301,7 +399,6 @@ def main():
         st.divider()
         st.subheader("- 동영상 분석 과정 -")
         
-        # 동영상 분석 결과 변수 초기화
         duration = None
         str3 = None
         str4 = None
@@ -316,24 +413,19 @@ def main():
             st.divider()
             st.subheader("- 이미지 저장 과정 -")
             
-            # 이미지 생성 및 저장
             temp_result_path = create_result_image(bmp_files, name_endo, current_date, duration, str3)
             
-            # Firebase 업로드
             result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             result_blob.upload_from_filename(temp_result_path)
             
             st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
             st.image(temp_result_path, use_container_width=True)
         
-        # 임시 파일 정리
         cleanup_temp_files()
         st.divider()
         st.success("평가가 완료되었습니다.")
     elif uploaded_files and not name_endo:
         st.error("이름이 입력되지 않았습니다.")
-
-
 
 if __name__ == "__main__":
     main()
