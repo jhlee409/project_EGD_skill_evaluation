@@ -146,10 +146,7 @@ def analyze_frames(camera, length):
     
     mean_g = np.mean([ggg for ggg in distance_g if ggg < 6])
     std_g = np.std([ggg for ggg in distance_g if ggg < 6])
-    st.write(f"계산된 mean_g: {mean_g:.4f}, std_g: {std_g:.4f}")
-    
     x_test = np.array([[mean_g, std_g]])
-    st.write(f"평가할 데이터: {x_test}")
 
     # 결과의 일관성을 위해 랜덤 시드 설정
     np.random.seed(42)
@@ -158,9 +155,9 @@ def analyze_frames(camera, length):
     if not os.path.exists('x_train.csv'):
         # 초기 기준 데이터 설정
         x_train = np.array([
-            [0.2, 0.15],  # 예시 기준값 1
-            [0.3, 0.18],  # 예시 기준값 2
-            [0.25, 0.16]  # 예시 기준값 3
+            [0.3, 0.2],    # 예시 기준값 1
+            [0.4, 0.25],   # 예시 기준값 2
+            [0.35, 0.22]   # 예시 기준값 3
         ])
         np.savetxt('x_train.csv', x_train, delimiter=',')
     
