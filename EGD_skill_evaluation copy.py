@@ -227,35 +227,7 @@ def add_text_to_image(draw, photo_count, duration, str3):
     except OSError:
         try:
             font_path = "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"
-            font = ImageFont.truetype(font_path, FONT_SIZE)# 결과의 일관성을 위해 랜덤 시드 설정
-            np.random.seed(42){{ ... }}
-            # 코드 최상단에 추가
-            import numpy as np
-            import random
-            np.random.seed(42)
-            random.seed(42)
-            cv2.setRNGSeed(42)
-            {{ ... }}{{ ... }}
-            # 코드 최상단에 추가
-            import numpy as np
-            import random
-            np.random.seed(42)
-            random.seed(42)
-            cv2.setRNGSeed(42)
-            {{ ... }}{{ ... }}
-            while True:
-                ret, frame = camera.read()
-                if not ret:
-                    print("[DEBUG] 더 이상 읽을 프레임이 없습니다.")
-                    break
-            
-                # 고정된 시간 간격으로 프레임 처리
-                if frame_count % int(frame_rate) == 0:  # 1초에 한 번씩 처리
-                    # 기존 프레임 처리 코드
-                    ...
-                
-                frame_count += 1
-            {{ ... }}
+            font = ImageFont.truetype(font_path, FONT_SIZE)
         except OSError:
             font = ImageFont.load_default()
             st.warning("시스템 폰트를 찾을 수 없어 기본 폰트를 사용합니다.")
