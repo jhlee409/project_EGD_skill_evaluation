@@ -102,8 +102,8 @@ if uploaded_files:
                 break  # 분석 중단
 
             st.divider
-            st.subheader("\n[DEBUG] 비디오 분석 시작...")
-            st.write(f"[DEBUG] 비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
+            st.subheader("-비디오 분석 시작-")
+            st.write(f"비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
 
             try:
                 # 프레임 처리를 위한 변수 초기화

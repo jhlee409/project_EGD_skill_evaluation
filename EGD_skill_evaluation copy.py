@@ -98,11 +98,12 @@ if uploaded_files:
 
             # 동영상 길이 체크
             if duration < 120 or duration > 330:  # 2분(120초)에서 5분(300초) 사이 체크
-                st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
+                st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어낈습니다. 더이상 분석은 진행되지 않습니다.")
                 break  # 분석 중단
 
-            st.write("\n[DEBUG] 비디오 분석 시작...")
-            st.write(f"[DEBUG] 비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
+            st.divider
+            st.subheader("-비디오 분석 시작-")
+            st.write(f"비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
 
             try:
                 # 프레임 처리를 위한 변수 초기화
@@ -248,10 +249,10 @@ if uploaded_files:
             y_pred_test = clf.predict(x_test_scaled)
             if y_pred_test == 1:
                 str3 = 'pass.'
-                st.write('EGD 수행이 적절하게 진행되어 EMT 과정 평가에서 합격하셨습니다. 수고하셨습니다.')
+                st.write('EGD 수행이 적절하게 진행되어 EMT 과정에서 합격하셨습니다. 수고하셨습니다.')
             else:
                 str3 = 'failure.'
-                st.write('EGD 수행이 적절하게 진행되지 못했습니다. 다시 도전해 주세요.')
+                st.write('EGD 수행이 적절하게 진행되지 못해 불합격입니다. 다시 도전해 주세요.')
             str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
             st.write(f"판단 점수: {str4}")
 
