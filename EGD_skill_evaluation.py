@@ -184,8 +184,6 @@ if uploaded_files:
                 # 분석 완료 후 정리
                 camera.release()
 
-            st.divider()
-
             k = list(pts)
             array_k = np.array(k)
 
