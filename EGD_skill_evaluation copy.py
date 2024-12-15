@@ -99,9 +99,12 @@ if uploaded_files:
             st.write(f'동영상 길이: {int(duration // 60)} 분  {int(duration % 60)} 초')
             # 동영상 길이 체크
             if duration < 120 or duration > 330:  # 2분(120초)에서 5분(300초) 사이 체크
-                st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어낈습니다. 더이상 분석은 진행되지 않습니다.")
+                st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
                 break  # 분석 중단
             st.write(f"비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
+            progress_container = st.empty()
+            progress_container.progress(0)
+
 
             try:
                 # 프레임 처리를 위한 변수 초기화
@@ -160,11 +163,10 @@ if uploaded_files:
                             ((cx, cy), radius) = cv2.minEnclosingCircle(u)
                             pts.append(int(radius))
 
-                        # # 진행률 표시 업데이트 (10프레임마다)
-                        # if frame_count % 10 == 0:
-                        #     progress = frame_count / length
-                        #     progress_bar.progress(progress)
-                        #     progress_text.write(f'분석 진행률: {progress * 100:.1f}%')
+                        # 진행률 업데이트 (5프레임마다)
+                        if frame_count % 5 == 0:
+                            progress = frame_count / length
+                            progress_container.progress(progress)
 
                     except Exception as e:
                         st.write(f"\n[ERROR] 프레임 {frame_count} 처리 중 오류 발생: {str(e)}")
