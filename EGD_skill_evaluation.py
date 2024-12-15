@@ -246,10 +246,6 @@ if uploaded_files:
             clf.fit(x_train_scaled)
 
             st.write("---")
-            st.subheader("-기존 훈련 데이터 로드-")
-            st.write(f"기존 훈련 데이터 수: {len(x_train)}")
-            st.write(f"기존 훈련 데이터: {x_train}")
-
             st.subheader("-최종 판정-")
 
             y_pred_test = clf.predict(x_test_scaled)
