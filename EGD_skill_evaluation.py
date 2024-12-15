@@ -37,11 +37,11 @@ bucket = initialize_firebase()
 
 st.markdown("<h1>EGD_skill_evaluation</h1>", unsafe_allow_html=True)
 st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수행의 적절성을 평가하는 페이지 입니다.")
-st.divider()
+st.write("---")
 
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: F1홍길동, R3아무개):")
 
-st.divider()
+st.write("---")
 st.subheader("- 파일 업로드 및 파악 과정 -")
 
 uploaded_files = st.file_uploader("분석할 파일들을 탐색기에서 찾아 모두 선택해주세요", 
@@ -249,7 +249,7 @@ if uploaded_files:
             clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
             clf.fit(x_train_scaled)
 
-            st.devider()
+            st.write("---")
 
             st.subheader("-최종 판정-")
 
