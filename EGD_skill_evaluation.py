@@ -94,15 +94,13 @@ if uploaded_files:
             frame_rate = camera.get(cv2.CAP_PROP_FPS)
             duration = length / frame_rate
 
+            st.write("---")
+            st.subheader("-비디오 분석 시작-")
             st.write(f'동영상 길이: {int(duration // 60)} 분  {int(duration % 60)} 초')
-
             # 동영상 길이 체크
             if duration < 120 or duration > 330:  # 2분(120초)에서 5분(300초) 사이 체크
                 st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어낈습니다. 더이상 분석은 진행되지 않습니다.")
                 break  # 분석 중단
-
-            st.write("---")
-            st.subheader("-비디오 분석 시작-")
             st.write(f"비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
 
             try:
@@ -178,7 +176,7 @@ if uploaded_files:
 
                 st.write(f"처리된 총 프레임 수: {frame_count}")
                 st.write(f"수집된 데이터 포인트 수: {len(pts)}")
-                st.subheader("\n분석 완료")
+                st.write("\n-> 분석 완료")
 
             except Exception as e:
                 st.write(f"\n[ERROR] 비디오 처리 중 치명적 오류 발생: {str(e)}")
@@ -336,7 +334,7 @@ if uploaded_files:
             os.makedirs('EGD_skill_evaluation/test_results', exist_ok=True)
             
             # 결과 이미지 저장
-            current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+            current_time = datetime.now().strftime('%Y%m%d')
             temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}_{current_time}.png'
             result_image.save(temp_image_path)
             
