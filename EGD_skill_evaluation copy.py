@@ -37,11 +37,11 @@ bucket = initialize_firebase()
 
 st.markdown("<h1>EGD_skill_evaluation</h1>", unsafe_allow_html=True)
 st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수행의 적절성을 평가하는 페이지 입니다.")
-st.divider()
+st.write("---")
 
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: F1홍길동, R3아무개):")
 
-st.divider()
+st.write("---")
 st.subheader("- 파일 업로드 및 파악 과정 -")
 
 uploaded_files = st.file_uploader("분석할 파일들을 탐색기에서 찾아 모두 선택해주세요", 
@@ -94,15 +94,13 @@ if uploaded_files:
             frame_rate = camera.get(cv2.CAP_PROP_FPS)
             duration = length / frame_rate
 
+            st.write("---")
+            st.subheader("-비디오 분석 시작-")
             st.write(f'동영상 길이: {int(duration // 60)} 분  {int(duration % 60)} 초')
-
             # 동영상 길이 체크
             if duration < 120 or duration > 330:  # 2분(120초)에서 5분(300초) 사이 체크
                 st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어낈습니다. 더이상 분석은 진행되지 않습니다.")
                 break  # 분석 중단
-
-            st.divider
-            st.subheader("-비디오 분석 시작-")
             st.write(f"비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
 
             try:
@@ -175,9 +173,10 @@ if uploaded_files:
                 # 진행률 표시 컨테이너 제거
                 progress_bar.empty()
                 progress_text.empty()
-                st.write("\n분석 완료")
+
                 st.write(f"처리된 총 프레임 수: {frame_count}")
                 st.write(f"수집된 데이터 포인트 수: {len(pts)}")
+                st.write("\n-> 분석 완료")
 
             except Exception as e:
                 st.write(f"\n[ERROR] 비디오 처리 중 치명적 오류 발생: {str(e)}")
@@ -246,15 +245,19 @@ if uploaded_files:
             clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
             clf.fit(x_train_scaled)
 
+            st.write("---")
+            st.subheader("-최종 판정-")
+
             y_pred_test = clf.predict(x_test_scaled)
+            str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
+            st.write(f"판단 점수: {str4}")
             if y_pred_test == 1:
                 str3 = 'pass.'
                 st.write('EGD 수행이 적절하게 진행되어 EMT 과정에서 합격하셨습니다. 수고하셨습니다.')
             else:
                 str3 = 'failure.'
                 st.write('EGD 수행이 적절하게 진행되지 못해 불합격입니다. 다시 도전해 주세요.')
-            str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
-            st.write(f"판단 점수: {str4}")
+
 
         # BMP 파일 처리 (한 번만 실행)
         if has_bmp and duration is not None:
@@ -328,7 +331,7 @@ if uploaded_files:
             os.makedirs('EGD_skill_evaluation/test_results', exist_ok=True)
             
             # 결과 이미지 저장
-            current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+            current_time = datetime.now().strftime('%Y%m%d')
             temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}_{current_time}.png'
             result_image.save(temp_image_path)
             
