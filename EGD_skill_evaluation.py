@@ -345,7 +345,6 @@ if uploaded_files:
                 # 임시 파일 삭제
                 if os.path.exists(temp_image_path):
                     os.remove(temp_image_path)
-    
-    cleanup_temp_files()
+                    
     st.divider()
     st.success("평가가 완료되었습니다.")
