@@ -170,19 +170,19 @@ if uploaded_files:
                             progress_container.progress(progress)
 
                     except Exception as e:
-                        st.write(f"\n[ERROR] 프레임 {frame_count} 처리 중 오류 발생: {str(e)}")
+                        st.write(f"\n[ERROR] 프레임 {frame_count} 처리 중 오류 발생 : {str(e)}")
                         continue
 
                 # 진행률 표시 컨테이너 제거
                 progress_bar.empty()
                 progress_text.empty()
 
-                st.write(f"처리된 총 프레임 수: {frame_count}")
-                st.write(f"수집된 데이터 포인트 수: {len(pts)}")
+                st.write(f"처리된 총 프레임 수:  {frame_count}")
+                st.write(f"수집된 데이터 포인트 수 : {len(pts)}")
                 st.write("\n-> 분석 완료")
 
             except Exception as e:
-                st.write(f"\n[ERROR] 비디오 처리 중 치명적 오류 발생: {str(e)}")
+                st.write(f"\n[ERROR] 비디오 처리 중 치명적 오류 발생 : {str(e)}")
             finally:
                 # 분석 완료 후 정리
                 camera.release()
@@ -255,10 +255,10 @@ if uploaded_files:
             str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
             st.write(f"판단 점수: {str4}")
             if y_pred_test == 1:
-                str3 = 'pass.'
+                str3 = 'Pass'
                 st.write('EGD 수행이 적절하게 진행되어 EMT 과정에서 합격하셨습니다. 수고하셨습니다.')
             else:
-                str3 = 'failure.'
+                str3 = 'Fail.'
                 st.write('EGD 수행이 적절하게 진행되지 못해 불합격입니다. 다시 도전해 주세요.')
 
 
@@ -343,7 +343,7 @@ if uploaded_files:
                 result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}.png')
                 result_blob.upload_from_filename(temp_image_path)
                 
-                st.success(f"이미지가 성공적으로 전송되었습니다: {name_endo}_{current_time}.png")
+                st.success(f"이미지가 성공적으로 전송되었습니다: {name_endo}.png")
                 st.image(temp_image_path, use_container_width=True)
             except Exception as e:
                 st.error(f"Firebase Storage 전송 도중 오류 발생: {str(e)}")
