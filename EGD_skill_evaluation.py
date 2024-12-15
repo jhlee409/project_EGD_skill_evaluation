@@ -97,12 +97,12 @@ if uploaded_files:
 
             st.write("---")
             st.subheader("-비디오 분석 시작-")
-            st.write(f'동영상 길이: {int(duration // 60)} 분  {int(duration % 60)} 초')
+            st.write(f'동영상 길이 : {int(duration // 60)} 분  {int(duration % 60)} 초')
             # 동영상 길이 체크
             if duration < 120 or duration > 330:  # 2분(120초)에서 5분(300초) 사이 체크
-                st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
+                st.error(f"동영상 길이가 {int(duration // 60)} 분 {int(duration % 60)} 초로 2분에서 5분 30초 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
                 break  # 분석 중단
-            st.write(f"비디오 정보: 총 프레임 수 ={length} , 프레임 레이트 ={frame_rate:.2f}")
+            st.write(f"비디오 정보 : 총 프레임 수 = {length} , 프레임 레이트 = {frame_rate:.2f}")
             progress_container = st.empty()
             progress_container.progress(0)
 
@@ -177,7 +177,7 @@ if uploaded_files:
                 progress_bar.empty()
                 progress_text.empty()
 
-                st.write(f"처리된 총 프레임 수:  {frame_count}")
+                st.write(f"처리된 총 프레임 수 :  {frame_count}")
                 st.write(f"수집된 데이터 포인트 수 : {len(pts)}")
                 st.write("\n-> 분석 완료")
 
