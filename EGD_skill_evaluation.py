@@ -354,9 +354,9 @@ if uploaded_files:
             st.subheader("- 이미지 저장 과정 -")
             
             # 결과 이미지를 test_result.png로 현재 폴더에 저장
-            result_image.save(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
+            result_image.save('EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             
-            result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
+            result_blob = bucket.blob('EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
             result_blob.upload_from_filename(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png)
             
             st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
