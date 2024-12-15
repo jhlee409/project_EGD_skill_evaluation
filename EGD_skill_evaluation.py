@@ -105,27 +105,17 @@ if uploaded_files:
             st.write(f"[DEBUG] 비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
 
             try:
-                # 동영상 분석 창 생성
-                cv2.namedWindow('Video Analysis', cv2.WINDOW_NORMAL)
-                cv2.resizeWindow('Video Analysis', 800, 600)
-
                 # 프레임 처리를 위한 변수 초기화
                 pts = []
                 angle_g = np.array([])
                 distance_g = np.array([])
                 frame_count = 0
-                last_time = time.time()
 
                 while True:
                     ret, frame = camera.read()
                     if not ret:
                         st.write("[DEBUG] 더 이상 읽을 프레임이 없습니다.")
                         break
-
-                    # 프레임 처리 시간 계산
-                    current_time = time.time()
-                    fps = 1 / (current_time - last_time)
-                    last_time = current_time
 
                     # 프레임 카운트 증가
                     frame_count += 1
@@ -167,33 +157,12 @@ if uploaded_files:
 
                             # 최소 외접원 계산
                             ((cx, cy), radius) = cv2.minEnclosingCircle(u)
-                            center = (int(cx), int(cy))
-                            radius = int(radius)
-                            pts.append(radius)
+                            pts.append(int(radius))
 
-                            # 원 그리기
-                            if radius > 8:
-                                cv2.circle(frame, center, 30, (0, 0, 255), -1)
-
-                        # 디버그 정보 표시
-                        debug_info = f'Frame: {frame_count}/{length} | FPS: {fps:.1f}'
-                        cv2.putText(frame, debug_info, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-                        
-                        # 분석 진행률 표시
-                        progress = f'Progress: {(frame_count) / length * 100:.1f}%'
-                        cv2.putText(frame, progress, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                        
-                        # 프레임 표시
-                        cv2.imshow('Video Analysis', frame)
-                        
                         # 진행률 표시
-                        st.write(f'[INFO] 분석 진행률: {(frame_count) / length * 100:.1f}% | FPS: {fps:.1f}')
-
-                        # 키 입력 처리
-                        key = cv2.waitKey(1)
-                        if key == 27:  # ESC 키를 누르면 분석 중단
-                            st.write("\n[DEBUG] 사용자가 ESC 키를 눌러 분석을 중단했습니다.")
-                            break
+                        progress = (frame_count / length) * 100
+                        st.progress(progress / 100)
+                        st.write(f'[INFO] 분석 진행률: {progress:.1f}%')
 
                     except Exception as e:
                         st.write(f"\n[ERROR] 프레임 {frame_count} 처리 중 오류 발생: {str(e)}")
@@ -208,8 +177,6 @@ if uploaded_files:
             finally:
                 # 분석 완료 후 정리
                 camera.release()
-                cv2.destroyAllWindows()
-                st.write("[DEBUG] 리소스 정리 완료")
 
             k = list(pts)
             array_k = np.array(k)
