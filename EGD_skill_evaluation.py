@@ -339,7 +339,7 @@ if uploaded_files:
             result_image.save(temp_image_path)
             
             try:
-                if str3 == "pass":
+                if str3 == "Pass":
                     # Firebase Storage에 업로드
                     result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}.png')
                     result_blob.upload_from_filename(temp_image_path)
