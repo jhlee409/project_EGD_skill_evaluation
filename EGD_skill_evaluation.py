@@ -111,6 +111,10 @@ if uploaded_files:
                 distance_g = np.array([])
                 frame_count = 0
 
+                # 진행률 표시를 위한 컨테이너 생성
+                progress_bar = st.progress(0)
+                progress_text = st.empty()
+
                 while True:
                     ret, frame = camera.read()
                     if not ret:
@@ -151,7 +155,6 @@ if uploaded_files:
                                 py = abs(int(M["m01"] / M["m00"]))
                             else:
                                 px, py = 0, 0
-                                st.write(f"[DEBUG] 프레임 {frame_count}: 중심점 계산 실패")
 
                             pts.extend([px, py])
 
@@ -159,15 +162,19 @@ if uploaded_files:
                             ((cx, cy), radius) = cv2.minEnclosingCircle(u)
                             pts.append(int(radius))
 
-                        # 진행률 표시
-                        progress = (frame_count / length) * 100
-                        st.progress(progress / 100)
-                        st.write(f'[INFO] 분석 진행률: {progress:.1f}%')
+                        # 진행률 표시 업데이트 (10프레임마다)
+                        if frame_count % 10 == 0:
+                            progress = frame_count / length
+                            progress_bar.progress(progress)
+                            progress_text.write(f'분석 진행률: {progress * 100:.1f}%')
 
                     except Exception as e:
                         st.write(f"\n[ERROR] 프레임 {frame_count} 처리 중 오류 발생: {str(e)}")
                         continue
 
+                # 진행률 표시 컨테이너 제거
+                progress_bar.empty()
+                progress_text.empty()
                 st.write("\n[DEBUG] 분석 완료")
                 st.write(f"[DEBUG] 처리된 총 프레임 수: {frame_count}")
                 st.write(f"[DEBUG] 수집된 데이터 포인트 수: {len(pts)}")
@@ -321,15 +328,15 @@ if uploaded_files:
             os.makedirs('EGD_skill_evaluation/test_results', exist_ok=True)
             
             # 결과 이미지 저장
-            temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png'
+            temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
             result_image.save(temp_image_path)
             
             try:
                 # Firebase Storage에 업로드
-                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
+                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
                 result_blob.upload_from_filename(temp_image_path)
                 
-                st.success(f"이미지가 Firebase Storage에 성공적으로 저장되었습니다: {name_endo}_{current_date}.png")
+                st.success(f"이미지가 Firebase Storage에 성공적으로 저장되었습니다: {name_endo}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png")
                 st.image(temp_image_path, use_container_width=True)
             except Exception as e:
                 st.error(f"Firebase Storage 업로드 중 오류 발생: {str(e)}")
