@@ -162,11 +162,11 @@ if uploaded_files:
                             ((cx, cy), radius) = cv2.minEnclosingCircle(u)
                             pts.append(int(radius))
 
-                        # 진행률 표시 업데이트 (10프레임마다)
-                        if frame_count % 10 == 0:
-                            progress = frame_count / length
-                            progress_bar.progress(progress)
-                            progress_text.write(f'분석 진행률: {progress * 100:.1f}%')
+                        # # 진행률 표시 업데이트 (10프레임마다)
+                        # if frame_count % 10 == 0:
+                        #     progress = frame_count / length
+                        #     progress_bar.progress(progress)
+                        #     progress_text.write(f'분석 진행률: {progress * 100:.1f}%')
 
                     except Exception as e:
                         st.write(f"\n[ERROR] 프레임 {frame_count} 처리 중 오류 발생: {str(e)}")
