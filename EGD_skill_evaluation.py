@@ -101,7 +101,7 @@ if uploaded_files:
                 st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어낈습니다. 더이상 분석은 진행되지 않습니다.")
                 break  # 분석 중단
 
-            st.divider
+            st.write("---")
             st.subheader("-비디오 분석 시작-")
             st.write(f"비디오 정보: 총 프레임 수={length}, 프레임 레이트={frame_rate:.2f}")
 
@@ -175,15 +175,18 @@ if uploaded_files:
                 # 진행률 표시 컨테이너 제거
                 progress_bar.empty()
                 progress_text.empty()
-                st.write("\n분석 완료")
+
                 st.write(f"처리된 총 프레임 수: {frame_count}")
                 st.write(f"수집된 데이터 포인트 수: {len(pts)}")
+                st.subheader("\n분석 완료")
 
             except Exception as e:
                 st.write(f"\n[ERROR] 비디오 처리 중 치명적 오류 발생: {str(e)}")
             finally:
                 # 분석 완료 후 정리
                 camera.release()
+
+            st.divider()
 
             k = list(pts)
             array_k = np.array(k)
@@ -246,15 +249,20 @@ if uploaded_files:
             clf = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
             clf.fit(x_train_scaled)
 
+            st.devider()
+
+            st.subheader("-최종 판정-")
+
             y_pred_test = clf.predict(x_test_scaled)
+            str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
+            st.write(f"판단 점수: {str4}")
             if y_pred_test == 1:
                 str3 = 'pass.'
                 st.write('EGD 수행이 적절하게 진행되어 EMT 과정에서 합격하셨습니다. 수고하셨습니다.')
             else:
                 str3 = 'failure.'
                 st.write('EGD 수행이 적절하게 진행되지 못해 불합격입니다. 다시 도전해 주세요.')
-            str4 = str(round(clf.decision_function(x_test_scaled)[0], 4))
-            st.write(f"판단 점수: {str4}")
+
 
         # BMP 파일 처리 (한 번만 실행)
         if has_bmp and duration is not None:
