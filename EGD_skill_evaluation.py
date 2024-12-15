@@ -353,14 +353,26 @@ if uploaded_files:
             st.divider()
             st.subheader("- 이미지 저장 과정 -")
             
-            # 결과 이미지를 test_result.png로 현재 폴더에 저장
-            result_image.save('EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
+            # 임시 디렉토리 생성
+            os.makedirs('EGD_skill_evaluation/test_results', exist_ok=True)
             
-            result_blob = bucket.blob('EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
-            result_blob.upload_from_filename(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png)
+            # 결과 이미지 저장
+            temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png'
+            result_image.save(temp_image_path)
             
-            st.success(f"이미지가 저장되었습니다: {name_endo}_{current_date}.png")
-            st.image(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png, use_container_width=True)
+            try:
+                # Firebase Storage에 업로드
+                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_date}.png')
+                result_blob.upload_from_filename(temp_image_path)
+                
+                st.success(f"이미지가 Firebase Storage에 성공적으로 저장되었습니다: {name_endo}_{current_date}.png")
+                st.image(temp_image_path, use_container_width=True)
+            except Exception as e:
+                st.error(f"Firebase Storage 업로드 중 오류 발생: {str(e)}")
+            finally:
+                # 임시 파일 삭제
+                if os.path.exists(temp_image_path):
+                    os.remove(temp_image_path)
     
     cleanup_temp_files()
     st.divider()
