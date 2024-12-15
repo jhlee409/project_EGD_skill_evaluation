@@ -328,15 +328,16 @@ if uploaded_files:
             os.makedirs('EGD_skill_evaluation/test_results', exist_ok=True)
             
             # 결과 이미지 저장
-            temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
+            current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+            temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}_{current_time}.png'
             result_image.save(temp_image_path)
             
             try:
                 # Firebase Storage에 업로드
-                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
+                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_time}.png')
                 result_blob.upload_from_filename(temp_image_path)
                 
-                st.success(f"이미지가 Firebase Storage에 성공적으로 저장되었습니다: {name_endo}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png")
+                st.success(f"이미지가 Firebase Storage에 성공적으로 저장되었습니다: {name_endo}_{current_time}.png")
                 st.image(temp_image_path, use_container_width=True)
             except Exception as e:
                 st.error(f"Firebase Storage 업로드 중 오류 발생: {str(e)}")
