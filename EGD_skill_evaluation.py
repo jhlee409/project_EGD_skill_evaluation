@@ -36,8 +36,8 @@ st.set_page_config(page_title="EGD_skill_evaluation")
 bucket = initialize_firebase()
 
 st.markdown("<h1>EGD_skill_evaluation</h1>", unsafe_allow_html=True)
-st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수행의 적절성을 평가하는 페이지 입니다.")
-st.markdown("합격 판정이 나오면 추가로 파일을 올리지 마세요. 올릴 때마다 이전기록이 삭제되기 때문입니다.")
+st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수행의 적절성을 평가하는 페이지입니다.")
+st.markdown("합격 판정이 나오면 추가로 파일을 올리지 마세요. 올릴 때마다 이전기록이 삭제됩니다.")
 st.write("---")
 
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: F1홍길동, R3아무개):")
@@ -79,7 +79,7 @@ if uploaded_files:
                 has_bmp = True
                 bmp_files.append(temp_path)
 
-        st.write(f"avi 파일 수: {len([file for file in avi_files if file.endswith('.avi')])} , MP4 파일 수: {len([file for file in avi_files if file.endswith('.mp4')])} , BMP 파일 수: {len(bmp_files)}")
+        st.write(f"avi 파일 수 : {len([file for file in avi_files if file.endswith('.avi')])} , MP4 파일 수 : {len([file for file in avi_files if file.endswith('.mp4')])} , BMP 파일 수: {len(bmp_files)}")
 
         # AVI 파일 처리
         total_avi_files = len(avi_files)
@@ -102,7 +102,7 @@ if uploaded_files:
             if duration < 120 or duration > 330:  # 2분(120초)에서 5분(300초) 사이 체크
                 st.error(f"동영상 길이가 {int(duration // 60)}분 {int(duration % 60)}초로 2분에서 5분 30초 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
                 break  # 분석 중단
-            st.write(f"비디오 정보: 총 프레임 수={length} , 프레임 레이트={frame_rate:.2f}")
+            st.write(f"비디오 정보: 총 프레임 수 ={length} , 프레임 레이트 ={frame_rate:.2f}")
             progress_container = st.empty()
             progress_container.progress(0)
 
@@ -313,7 +313,7 @@ if uploaded_files:
             video_length = f"{int(duration // 60)} min {int(duration % 60)} sec"
 
             # 추가할 텍스트
-            text = f"photo number: {len(bmp_files)}\nduration: {video_length}\nresult: {str3}\nSVM_value: {str4}"
+            text = f"Photo number: {len(bmp_files)}\nDuration: {video_length}\nResult: {str3}\nSVM_value: {str4}"
 
             # 텍스트 크기 계산
             text_bbox = draw.textbbox((0, 0), text, font=font)
@@ -334,16 +334,16 @@ if uploaded_files:
             os.makedirs('EGD_skill_evaluation/test_results', exist_ok=True)
             
             # 결과 이미지 저장
-            current_time = datetime.now().strftime('%Y%m%d')
-            temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}_{current_time}.png'
+            # current_time = datetime.now().strftime('%Y%m%d')
+            temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}.png'
             result_image.save(temp_image_path)
             
             try:
                 # Firebase Storage에 업로드
-                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}_{current_time}.png')
+                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}.png')
                 result_blob.upload_from_filename(temp_image_path)
                 
-                st.success(f"이미지가 Firebase Storage에 성공적으로 전송되었습니다: {name_endo}_{current_time}.png")
+                st.success(f"이미지가 성공적으로 전송되었습니다: {name_endo}_{current_time}.png")
                 st.image(temp_image_path, use_container_width=True)
             except Exception as e:
                 st.error(f"Firebase Storage 전송 도중 오류 발생: {str(e)}")
