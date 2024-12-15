@@ -2,9 +2,7 @@ import streamlit as st
 import os
 import cv2
 import numpy as np
-import sys
 from collections import deque
-import csv
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.impute import SimpleImputer
@@ -12,7 +10,6 @@ from sklearn import svm
 from math import atan2, degrees
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
-import pytz
 import firebase_admin
 from firebase_admin import credentials, storage
 
@@ -69,15 +66,15 @@ if uploaded_files:
         # 업로드된 파일 저장 및 분류
         total_files = len(uploaded_files)
         for idx, uploaded_file in enumerate(uploaded_files):
-            temp_path = os.path.join(temp_dir, os.path.basename(uploaded_file))
+            temp_path = os.path.join(temp_dir, uploaded_file.name)
             with open(temp_path, "wb") as f:
-                f.write(open(uploaded_file, "rb").read())
+                f.write(uploaded_file.getbuffer())
             
-            if uploaded_file.endswith('.avi'):
+            if uploaded_file.name.endswith('.avi'):
                 avi_files.append(temp_path)
-            elif uploaded_file.endswith('.mp4'):
+            elif uploaded_file.name.endswith('.mp4'):
                 avi_files.append(temp_path)
-            elif uploaded_file.endswith('.bmp'):
+            elif uploaded_file.name.endswith('.bmp'):
                 has_bmp = True
                 bmp_files.append(temp_path)
 
