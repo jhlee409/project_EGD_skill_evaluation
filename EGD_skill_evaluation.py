@@ -339,11 +339,14 @@ if uploaded_files:
             result_image.save(temp_image_path)
             
             try:
-                # Firebase Storage에 업로드
-                result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}.png')
-                result_blob.upload_from_filename(temp_image_path)
+                if str3 == "pass":
+                    # Firebase Storage에 업로드
+                    result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}.png')
+                    result_blob.upload_from_filename(temp_image_path)
+                    st.success(f"이미지가 성공적으로 전송되었습니다: {name_endo}.png")
+                else:
+                    st.warning("평가 결과가 'fail'이므로 Firebase Storage에 업로드하지 않습니다.")
                 
-                st.success(f"이미지가 성공적으로 전송되었습니다: {name_endo}.png")
                 st.image(temp_image_path, use_container_width=True)
             except Exception as e:
                 st.error(f"Firebase Storage 전송 도중 오류 발생: {str(e)}")
