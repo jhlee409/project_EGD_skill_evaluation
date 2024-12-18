@@ -41,7 +41,7 @@ st.markdown("합격 판정이 나오면 추가로 파일을 올리지 마세요.
 st.write("---")
 
 user_name = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: 홍길동):")
-position = st.selectbox("Position", ["Select Position", "Staff", "F1", "F2", "R3", "Student"])  
+position = st.selectbox("Select Position", ["", "Staff", "F1", "F2", "R3", "Student"])  
 
 st.write("---")
 
