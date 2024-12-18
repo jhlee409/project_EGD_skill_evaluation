@@ -40,7 +40,27 @@ st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수�
 st.markdown("합격 판정이 나오면 추가로 파일을 올리지 마세요. 올릴 때마다 이전기록이 삭제됩니다.")
 st.write("---")
 
+position = st.selectbox(
+    "본인의 포지션을 선택해 주세요:",
+    ["Select Position", "F1", "F2", "F3", "F4", "R1", "R2", "R3", "Staff"]
+)
+
 name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: F1홍길동, R3아무개):")
+
+def is_korean(text):
+    if not text:
+        return False
+    return any(('\uAC00' <= char <= '\uD7A3') or ('\u3131' <= char <= '\u318E') for char in text)
+
+is_valid = True
+
+if position == "Select Position":
+    st.error("position을 선택해 주세요")
+    is_valid = False
+
+if not is_korean(name_endo):
+    st.error("한글 이름을 입력해 주세요")
+    is_valid = False
 
 st.write("---")
 st.subheader("- 파일 업로드 및 파악 과정 -")
