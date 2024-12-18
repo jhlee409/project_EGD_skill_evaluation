@@ -40,40 +40,41 @@ st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수�
 st.markdown("합격 판정이 나오면 추가로 파일을 올리지 마세요. 올릴 때마다 이전기록이 삭제됩니다.")
 st.write("---")
 
-position = st.selectbox(
-    "본인의 포지션을 선택해 주세요:",
-    ["Select Position", "Staff", "F1", "F2", "R3", "Student"]
-)
+user_name = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: 홍길동):")
+position = st.selectbox("Select Position", ["", "Staff", "F1", "F2", "R3", "Student"])  
 
-name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: 홍길동):")
+st.write("---")
 
 def is_korean(text):
-    if not text:
-        return False
-    return any(('\uAC00' <= char <= '\uD7A3') or ('\u3131' <= char <= '\u318E') for char in text)
+    # 한글 유니코드 범위: AC00-D7A3 (가-힣)
+    return all('\uAC00' <= char <= '\uD7A3' for char in text if char.strip())
 
+# 입력값 검증
 is_valid = True
-
-if position == "Select Position":
+if not user_name:
+    st.error("한글 이름을 입력해 주세요")
+    is_valid = False
+if position == "Select Position" or not position:
     st.error("position을 선택해 주세요")
     is_valid = False
 
-if not is_korean(name_endo):
+elif not is_korean(user_name):
     st.error("한글 이름을 입력해 주세요")
     is_valid = False
 
 st.write("---")
 st.subheader("- 파일 업로드 및 파악 과정 -")
 
-# 유효성 검사를 통과한 경우에만 파일 업로드 섹션 표시
-if is_valid:
-    uploaded_files = st.file_uploader("분석할 파일들(avi, mp4, bmp)을 탐색기에서 찾아 모두 선택해주세요", 
+uploaded_files = st.file_uploader("분석할 파일들(avi, mp4, bmp)을 탐색기에서 찾아 모두 선택해주세요", 
                                     accept_multiple_files=True,
                                     type=['avi', 'bmp', 'mp4'])
 
-    # 파일의 업로드 및 파악
-    if uploaded_files:
-        st.write(f"총 {len(uploaded_files)}개의 파일이 선택되었습니다.")
+# 파일의 업로드 및 파악
+if uploaded_files:
+    st.write(f"총 {len(uploaded_files)}개의 파일이 선택되었습니다.")
+    if not user_name:
+        st.error("이름이 입력되지 않았습니다.")
+    else:
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
         os.makedirs(temp_dir, exist_ok=True)
@@ -354,15 +355,15 @@ if is_valid:
             
             # 결과 이미지 저장
             # current_time = datetime.now().strftime('%Y%m%d')
-            temp_image_path = f'EGD_skill_evaluation/test_results/{name_endo}.png'
+            temp_image_path = f'EGD_skill_evaluation/test_results/{user_name}.png'
             result_image.save(temp_image_path)
             
             try:
                 if str3 == "Pass":
                     # Firebase Storage에 업로드
-                    result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{name_endo}.png')
+                    result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{user_name}.png')
                     result_blob.upload_from_filename(temp_image_path)
-                    st.success(f"이미지가 성공적으로 전송되었습니다: {name_endo}.png")
+                    st.success(f"이미지가 성공적으로 전송되었습니다: {user_name}.png")
                 else:
                     st.warning("평가 결과가 'fail'이므로 Firebase Storage에 업로드하지 않습니다.")
                 
@@ -374,5 +375,5 @@ if is_valid:
                 if os.path.exists(temp_image_path):
                     os.remove(temp_image_path)
                     
-            st.divider()
-            st.success("평가가 완료되었습니다.")
+    st.divider()
+    st.success("평가가 완료되었습니다.")
