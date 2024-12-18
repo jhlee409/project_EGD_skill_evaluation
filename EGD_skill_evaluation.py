@@ -42,10 +42,10 @@ st.write("---")
 
 position = st.selectbox(
     "본인의 포지션을 선택해 주세요:",
-    ["Select Position", "F1", "F2", "F3", "F4", "R1", "R2", "R3", "Staff"]
+    ["Select Position", "Staff", "F1", "F2", "R3", "Student"]
 )
 
-name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: F1홍길동, R3아무개):")
+name_endo = st.text_input("본인의 성명을 한글로 입력해 주세요 (예: 홍길동):")
 
 def is_korean(text):
     if not text:
@@ -65,16 +65,15 @@ if not is_korean(name_endo):
 st.write("---")
 st.subheader("- 파일 업로드 및 파악 과정 -")
 
-uploaded_files = st.file_uploader("분석할 파일들(avi, mp4, bmp)을 탐색기에서 찾아 모두 선택해주세요", 
+# 유효성 검사를 통과한 경우에만 파일 업로드 섹션 표시
+if is_valid:
+    uploaded_files = st.file_uploader("분석할 파일들(avi, mp4, bmp)을 탐색기에서 찾아 모두 선택해주세요", 
                                     accept_multiple_files=True,
                                     type=['avi', 'bmp', 'mp4'])
 
-# 파일의 업로드 및 파악
-if uploaded_files:
-    st.write(f"총 {len(uploaded_files)}개의 파일이 선택되었습니다.")
-    if not name_endo:
-        st.error("이름이 입력되지 않았습니다.")
-    else:
+    # 파일의 업로드 및 파악
+    if uploaded_files:
+        st.write(f"총 {len(uploaded_files)}개의 파일이 선택되었습니다.")
         # 임시 디렉토리 생성
         temp_dir = "temp_files"
         os.makedirs(temp_dir, exist_ok=True)
