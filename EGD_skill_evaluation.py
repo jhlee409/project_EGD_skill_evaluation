@@ -374,5 +374,5 @@ if is_valid:
                 if os.path.exists(temp_image_path):
                     os.remove(temp_image_path)
                     
-    st.divider()
-    st.success("평가가 완료되었습니다.")
+            st.divider()
+            st.success("평가가 완료되었습니다.")
