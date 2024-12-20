@@ -52,14 +52,14 @@ def is_korean(text):
 # 입력값 검증
 is_valid = True
 if not user_name:
-    st.error("한글 이름을 입력해 주세요")
+    st.error("한글 이름을 입력해 주세요 (예; 이진혁)")
     is_valid = False
 if position == "Select Position" or not position:
     st.error("position을 선택해 주세요")
     is_valid = False
 
 elif not is_korean(user_name):
-    st.error("한글 이름을 입력해 주세요")
+    st.error("한글 이름을 입력해 주세요 (예; 이진혁)")
     is_valid = False
 
 st.write("---")
