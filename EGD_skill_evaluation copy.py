@@ -57,6 +57,7 @@ if not user_name:
 if position == "Select Position" or not position:
     st.error("position을 선택해 주세요")
     is_valid = False
+
 elif not is_korean(user_name):
     st.error("한글 이름을 입력해 주세요 (예; 이진혁)")
     is_valid = False
@@ -87,12 +88,14 @@ if is_valid:
 
             # 업로드된 파일 저장 및 분류
             total_files = len(uploaded_files)
-            for uploaded_file in uploaded_files:
+            for idx, uploaded_file in enumerate(uploaded_files):
                 temp_path = os.path.join(temp_dir, uploaded_file.name)
                 with open(temp_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 
-                if uploaded_file.name.endswith('.avi') or uploaded_file.name.endswith('.mp4'):
+                if uploaded_file.name.endswith('.avi'):
+                    avi_files.append(temp_path)
+                elif uploaded_file.name.endswith('.mp4'):
                     avi_files.append(temp_path)
                 elif uploaded_file.name.endswith('.bmp'):
                     has_bmp = True
@@ -100,13 +103,10 @@ if is_valid:
 
             st.write(f"avi 파일 수 : {len([file for file in avi_files if file.endswith('.avi')])} , MP4 파일 수 : {len([file for file in avi_files if file.endswith('.mp4')])} , BMP 파일 수: {len(bmp_files)}")
 
-            # BMP 이미지 수 확인
-            if not (62 <= len(bmp_files) <= 66):
-                st.error("사진의 숫자가 62장에서 66을 벗어납니다. 다시 시도해 주세요")
-                st.stop()
-
             # AVI 파일 처리
             total_avi_files = len(avi_files)
+            processed_files = 0
+
             for file_path in avi_files:
                 camera = cv2.VideoCapture(file_path)
                 if not camera.isOpened():
@@ -117,11 +117,13 @@ if is_valid:
                 frame_rate = camera.get(cv2.CAP_PROP_FPS)
                 duration = length / frame_rate
 
-                st.write(f"---\n동영상 길이: {int(duration // 60)} 분 {int(duration % 60)} 초")
-                if not (300 <= duration <= 330):
-                    st.error("동영상의 길이가 5분에서 5분30초를 벗어납니다. 다시 시도해 주세요")
-                    st.stop()
-                    
+                st.write("---")
+                st.subheader("-비디오 분석 시작-")
+                st.write(f'동영상 길이 : {int(duration // 60)} 분  {int(duration % 60)} 초')
+                # 동영상 길이 체크
+                if duration < 300 or duration > 330:
+                    st.error(f"동영상 길이가 {int(duration // 60)} 분 {int(duration % 60)} 초로 5분에서 5분 30초 사이의 범위를 벗어납니다. 더이상 분석은 진행되지 않습니다.")
+                    break  # 분석 중단
                 st.write(f"비디오 정보 : 총 프레임 수 = {length} , 프레임 레이트 = {frame_rate:.2f}")
                 progress_container = st.empty()
                 progress_container.progress(0)
