@@ -374,20 +374,17 @@ if is_valid:
                 st.subheader("- 이미지 전송 과정 -")
                 
                 # 임시 디렉토리 생성
-                os.makedirs(MT
-            /test_results', exist_ok=True)
+                os.makedirs('EMT_skill_evaluation/test_results', exist_ok=True)
                 
                 # 결과 이미지 저장
                 # current_time = datetime.now().strftime('%Y%m%d')
-                temp_image_path = fMT
-            /test_results/{user_name}.png'
+                temp_image_path = f'EMT_skill_evaluation/test_results/{user_name}.png'
                 result_image.save(temp_image_path)
                 
                 try:
                     if str3 == "Pass":
                         # Firebase Storage에 업로드
-                        result_blob = bucket.blob(fMT
-                    /test_results/{user_name}.png')
+                        result_blob = bucket.blob(f'EMT_skill_evaluation/test_results/{user_name}.png')
                         result_blob.upload_from_filename(temp_image_path)
                         st.success(f"이미지가 성공적으로 전송되었습니다: {user_name}.png")
                     else:
