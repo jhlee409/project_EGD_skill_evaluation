@@ -64,6 +64,29 @@ elif not is_korean(user_name):
 st.write("---")
 
 if is_valid:
+
+    st.subheader("합격 동영상 예시")
+    st.write("EMT 합격한 동영상 예시를 올립니다. 잘보고 어떤 점에서 초심자와 차이가 나는지 연구해 보세요.")
+    try:
+        bucket = storage.bucket('amcgi-bulletin.appspot.com')
+        demonstration1_blob = bucket.blob('EMT_skill_evaluation/EMT_pass_demo.avi')
+        if demonstration1_blob.exists():
+            demonstration_url = demonstration1_blob.generate_signed_url(expiration=timedelta(minutes=15))
+            if st.download_button(
+                label="동영상 다운로드",
+                data=demonstration1_blob.download_as_bytes(),
+                file_name="EMT_pass_demo.avi",
+                mime="video/avi"
+            ):
+                st.write("")
+        else:
+            st.error("EMT 합격 동영상 파일을 찾을 수 없습니다.")
+
+    except Exception as e:
+        st.error(f"EMT 합격 동영상 파일 다운로드 중 오류가 발생했습니다: {e}")
+
+    st.write("---")
+
     st.subheader("- 파일 업로드 및 파악 과정 -")
 
     uploaded_files = st.file_uploader("분석할 파일들(avi, mp4, bmp)을 탐색기에서 찾아 모두 선택해주세요", 
@@ -121,7 +144,7 @@ if is_valid:
                 if not (300 <= duration <= 330):
                     st.error("동영상의 길이가 5분에서 5분30초를 벗어납니다. 다시 시도해 주세요")
                     st.stop()
-                    
+
                 st.write(f"비디오 정보 : 총 프레임 수 = {length} , 프레임 레이트 = {frame_rate:.2f}")
                 progress_container = st.empty()
                 progress_container.progress(0)
