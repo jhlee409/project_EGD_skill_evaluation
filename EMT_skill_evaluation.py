@@ -69,7 +69,7 @@ if is_valid:
     st.write("EMT 합격한 동영상 예시를 올립니다. 잘보고 어떤 점에서 초심자와 차이가 나는지 연구해 보세요.")
     try:
         bucket = storage.bucket('amcgi-bulletin.appspot.com')
-        demonstration_blob = bucket.blob('EMT_skill_evaluation/EMT_pass_demo.avi')
+        demonstration_blob = bucket.blob('EMT_skill_evaluation/EMT_pass_demo/EMT_pass_demo.avi')
         if demonstration_blob.exists():
             demonstration_url = demonstration_blob.generate_signed_url(expiration=timedelta(minutes=15))
             if st.download_button(
