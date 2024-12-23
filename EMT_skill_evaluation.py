@@ -32,11 +32,11 @@ def initialize_firebase():
         firebase_admin.initialize_app(cred, {"storageBucket": "amcgi-bulletin.appspot.com"})
     return storage.bucket('amcgi-bulletin.appspot.com')
 
-st.set_page_config(page_title="EGD_skill_evaluation")
+st.set_page_config(page_title="EMT_skill_evaluation")
 bucket = initialize_firebase()
 
-st.markdown("<h1>EGD_skill_evaluation</h1>", unsafe_allow_html=True)
-st.markdown("이 페이지는 EGD simulator을 대상으로 한 EGD 검사 수행의 적절성을 평가하는 페이지입니다.")
+st.markdown("<h1>EMT_skill_evaluation</h1>", unsafe_allow_html=True)
+st.markdown("이 페이지는 EGD simulator을 대상으로 한 EMT 검사 수행의 적절성을 평가하는 페이지입니다.")
 st.markdown("합격 판정이 나오면 추가로 파일을 올리지 마세요. 올릴 때마다 이전기록이 삭제됩니다.")
 st.write("---")
 
@@ -69,12 +69,12 @@ if is_valid:
     st.write("EMT 합격한 동영상 예시를 올립니다. 잘보고 어떤 점에서 초심자와 차이가 나는지 연구해 보세요.")
     try:
         bucket = storage.bucket('amcgi-bulletin.appspot.com')
-        demonstration1_blob = bucket.blob('EMT_skill_evaluation/EMT_pass_demo.avi')
-        if demonstration1_blob.exists():
-            demonstration_url = demonstration1_blob.generate_signed_url(expiration=timedelta(minutes=15))
+        demonstration_blob = bucket.blob('EMT_skill_evaluation/EMT_pass_demo.avi')
+        if demonstration_blob.exists():
+            demonstration_url = demonstration_blob.generate_signed_url(expiration=timedelta(minutes=15))
             if st.download_button(
                 label="동영상 다운로드",
-                data=demonstration1_blob.download_as_bytes(),
+                data=demonstration_blob.download_as_bytes(),
                 file_name="EMT_pass_demo.avi",
                 mime="video/avi"
             ):
@@ -374,29 +374,32 @@ if is_valid:
                 st.subheader("- 이미지 전송 과정 -")
                 
                 # 임시 디렉토리 생성
-                os.makedirs('EGD_skill_evaluation/test_results', exist_ok=True)
+                os.makedirs(MT
+            /test_results', exist_ok=True)
                 
                 # 결과 이미지 저장
                 # current_time = datetime.now().strftime('%Y%m%d')
-                temp_image_path = f'EGD_skill_evaluation/test_results/{user_name}.png'
+                temp_image_path = fMT
+            /test_results/{user_name}.png'
                 result_image.save(temp_image_path)
                 
                 try:
                     if str3 == "Pass":
                         # Firebase Storage에 업로드
-                        result_blob = bucket.blob(f'EGD_skill_evaluation/test_results/{user_name}.png')
+                        result_blob = bucket.blob(fMT
+                    /test_results/{user_name}.png')
                         result_blob.upload_from_filename(temp_image_path)
                         st.success(f"이미지가 성공적으로 전송되었습니다: {user_name}.png")
                     else:
-                        st.warning("평가 결과가 'fail'이므로 Firebase Storage에 업로드하지 않습니다.")
+                        st.warning("평가 결과가 'fail'이므로 업로드하지 않습니다.")
                     
                     st.image(temp_image_path, use_container_width=True)
                 except Exception as e:
-                    st.error(f"Firebase Storage 전송 도중 오류 발생: {str(e)}")
+                    st.error(f"전송 도중 오류 발생: {str(e)}")
                 finally:
                     # 임시 파일 삭제
                     if os.path.exists(temp_image_path):
                         os.remove(temp_image_path)
                         
-        st.divider()
+        st.divider() 
         st.success("평가가 완료되었습니다.")
