@@ -174,7 +174,7 @@ if is_valid:
                             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                             
                             # 색상 범위 설정 및 마스크 생성
-                            green_lower = np.array([35, 80, 50], np.uint8)
+                            green_lower = np.array([40, 80, 50], np.uint8)
                             green_upper = np.array([60, 255, 255], np.uint8)
                             green = cv2.inRange(hsv, green_lower, green_upper)
 
